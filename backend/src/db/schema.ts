@@ -1,22 +1,32 @@
 import { boolean, date, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { userGender, userRole, userType } from "./enums";
+
+export const defaultSchema = {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	createdAt: timestamp("createdAt").notNull().defaultNow(),
+	updatedAt: timestamp("updatedAt")
+		.notNull()
+		.defaultNow()
+		.$onUpdateFn(() => new Date()),
+};
 
 export const user = pgTable("user", {
-	id: text("id").primaryKey(),
+	...defaultSchema,
 	name: text("name").notNull(),
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("emailVerified").notNull(),
 	image: text("image"),
-	createdAt: timestamp("createdAt").notNull(),
-	updatedAt: timestamp("updatedAt").notNull(),
 
-	role: text("role").notNull().default("user"), // 'admin' | 'user'
-	type: text("type").notNull(), // 'pf' | 'pj'
+	role: userRole("role").notNull().default("user"),
+	type: userType("type").notNull(),
 	deletedAt: timestamp("deletedAt"),
 
 	// PF fields
 	cpf: text("cpf").unique(),
-	dob: date("dob"),
-	gender: text("gender"), // 'M' | 'F' | 'O' etc.
+	dob: date("dob", { mode: "date" }),
+	gender: userGender("gender"),
 
 	// PJ fields
 	corporateName: text("corporateName"),
@@ -24,21 +34,8 @@ export const user = pgTable("user", {
 	cnpj: text("cnpj").unique(),
 });
 
-export const session = pgTable("session", {
-	id: text("id").primaryKey(),
-	expiresAt: timestamp("expiresAt").notNull(),
-	token: text("token").notNull().unique(),
-	createdAt: timestamp("createdAt").notNull(),
-	updatedAt: timestamp("updatedAt").notNull(),
-	ipAddress: text("ipAddress"),
-	userAgent: text("userAgent"),
-	userId: text("userId")
-		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
-});
-
 export const account = pgTable("account", {
-	id: text("id").primaryKey(),
+	...defaultSchema,
 	accountId: text("accountId").notNull(),
 	providerId: text("providerId").notNull(),
 	userId: text("userId")
@@ -51,21 +48,17 @@ export const account = pgTable("account", {
 	refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
 	scope: text("scope"),
 	password: text("password"),
-	createdAt: timestamp("createdAt").notNull(),
-	updatedAt: timestamp("updatedAt").notNull(),
 });
 
 export const verification = pgTable("verification", {
-	id: text("id").primaryKey(),
+	...defaultSchema,
 	identifier: text("identifier").notNull(),
 	value: text("value").notNull(),
 	expiresAt: timestamp("expiresAt").notNull(),
-	createdAt: timestamp("createdAt"),
-	updatedAt: timestamp("updatedAt"),
 });
 
 export const address = pgTable("address", {
-	id: text("id").primaryKey(),
+	...defaultSchema,
 	userId: text("userId")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
@@ -76,6 +69,4 @@ export const address = pgTable("address", {
 	neighborhood: text("neighborhood").notNull(),
 	city: text("city").notNull(),
 	state: text("state").notNull(),
-	createdAt: timestamp("createdAt").notNull().defaultNow(),
-	updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

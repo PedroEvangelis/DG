@@ -7,7 +7,7 @@
 - **Database:** **PostgreSQL**
 - **ORM:** **Drizzle ORM** (Use this for all database schemas, migrations, and queries)
 - **Authentication:** **Better Auth** (Configured specifically for Email and Password authentication)
-- **Validation:** **Zod** (Use Zod schemas for strictly validating all incoming API requests and business logic)
+- **Validation:** **Zod** & **Elysia TypeBox** (`t`)
 - **Testing:** Bun Test
 
 ## 2. Backend Commands
@@ -30,15 +30,6 @@ Execute these inside the `backend/` directory or using `bun -F backend <command>
 - Ensure the Drizzle schema includes a `deletedAt` timestamp for the soft-delete requirement (users shouldn't be fully erased from DB).
 - Map entity relationships carefully (distinguishing PF and PJ data).
 
-**Authentication & Security (Better Auth):**
-- Use **Better Auth** specifically for Email and Password authentication mechanisms (login, registration, password hashing/resets, session management).
-- Integrate Better Auth with Drizzle ORM for robust session and user persistence.
-- Implement strict RBAC checks via Elysia hooks/middleware. Admins only for creating/deleting users or changing roles.
-
-**Validation (Zod):**
-- Strictly validate all incoming data payloads (body, query, params) using **Zod** before they reach the service layer.
-- Use Elysia integrations for Zod (e.g., `t` from Elysia TypeBox or an Elysia-Zod plugin) so errors are formatted natively.
-
 **External Integrations:**
 - Implement robust service classes for **ViaCEP** (addresses) and **ReceitaWS** (company data) with proper error handling, caching, and fallback mechanisms. The backend mediates these to avoid CORS on the frontend.
 
@@ -48,3 +39,33 @@ Execute these inside the `backend/` directory or using `bun -F backend <command>
 
 **Documentation:**
 - Expose an OpenAPI (Swagger) endpoint at `/api/docs` (using `@elysiajs/swagger`).
+
+---
+
+## 4. Controller & Authorization Best Practices (Strict Rules)
+
+**Strict Typing & DTOs (No `any` or `t.Any()`):**
+- **NEVER** use `any` or `t.Any()` in your schemas or controller definitions. 
+- All endpoints MUST define strict input (`body`, `params`, `query`) and output (`response`) schemas using Elysia's `t` (TypeBox).
+- **Return Types (DTOs):** Define dedicated **DTOs (Data Transfer Objects)** in your schema files (e.g., `address.schema.ts`, `user.schema.ts`). These DTOs must strictly type the successful response payloads. This is mandatory for two reasons:
+  1. It feeds the OpenAPI (Swagger) documentation natively.
+  2. It generates precise TypeScript types for the frontend via Elysia Eden, avoiding `any` or `unknown` on the client side.
+- Responses must always follow a consistent structure. Map each HTTP status code explicitly in the `response` definition (e.g., `{ 200: t.Object({ success: t.Literal(true), data: AddressDTO }), 400: t.Object({ success: t.Literal(false), message: t.String() }) }`).
+
+**Authentication & Role-Based / Ownership-Based Access Control:**
+- Use **Better Auth** for session management.
+- Ensure endpoints mutating data (POST, PUT, PATCH, DELETE) or accessing sensitive data (GET /:id) enforce **Ownership Rules**:
+  - **Admin Users:** Can view, create, edit, or delete ANY resource across the system.
+  - **Simple Users:** Can ONLY view, create, edit, or delete resources that **belong strictly to them** (i.e., `resource.userId === session.user.id`).
+- **Validation Flow for Edits/Deletions/Reads:**
+  1. Retrieve the existing resource from the database via the Service layer.
+  2. If the resource does not exist, return `404 Not Found`.
+  3. Validate Ownership: If `session?.user.role !== 'admin'` AND `resource.userId !== session?.user.id`, immediately return a `403 Forbidden` response.
+  4. Only proceed to return or mutate the data if the ownership/admin check passes.
+
+**Controller Assembly Pattern:**
+- Controllers should strictly act as the HTTP transport layer. They must:
+  - Parse and validate inputs (via `body`, `params`, etc.).
+  - Verify authorization (ownership & roles) dynamically inside the route handler or a specific hook.
+  - Delegate the actual business logic to the `Service` layer.
+  - Format the final output matching the strict `response` schema DTO.

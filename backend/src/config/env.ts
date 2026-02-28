@@ -24,9 +24,9 @@ if (errors.length > 0) {
 	console.error(
 		"❌ Falha na inicialização: Erro nas variáveis de ambiente (.env)",
 	);
-	errors.forEach((e) =>
-		console.error(`   -> ${e.path.replace("/", "")}: ${e.message}`),
-	);
+	errors.forEach((e) => {
+		console.error(`   -> ${e.path.replace("/", "")}: ${e.message}`);
+	});
 	process.exit(1); // Derruba o processo imediatamente (Fail-Fast)
 }
 

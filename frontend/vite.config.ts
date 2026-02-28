@@ -13,7 +13,7 @@ const config = defineConfig({
 		tanstackRouter({ target: "react", autoCodeSplitting: true }),
 		viteReact({
 			babel: {
-				plugins: [["babel-plugin-react-compiler"]],
+				plugins: ["babel-plugin-react-compiler"],
 			},
 		}),
 	],

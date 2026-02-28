@@ -8,6 +8,27 @@
       "when": 1772152644171,
       "tag": "0000_nostalgic_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772154872516,
+      "tag": "0001_strange_oracle",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772159701283,
+      "tag": "0002_fearless_silver_samurai",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772202556420,
+      "tag": "0003_far_peter_quill",
+      "breakpoints": true
     }
   ]
 }
