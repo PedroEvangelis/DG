@@ -9,6 +9,10 @@ const envSchema = t.Object({
 		error: "JWT_SECRET deve ter no mínimo 10 caracteres",
 	}),
 	PORT: t.String({ default: "3000" }),
+	FRONTEND_URL: t.String({
+		minLength: 1,
+		error: "FRONTEND_URL é obrigatória",
+	}),
 });
 
 const processEnv = {
@@ -16,6 +20,7 @@ const processEnv = {
 	REDIS_URL: Bun.env.REDIS_URL,
 	JWT_SECRET: Bun.env.JWT_SECRET,
 	PORT: Bun.env.PORT || "3000",
+	FRONTEND_URL: Bun.env.FRONTEND_URL,
 };
 
 const errors = [...Value.Errors(envSchema, processEnv)];

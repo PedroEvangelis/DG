@@ -5,18 +5,26 @@ import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-const config = defineConfig({
-	plugins: [
-		devtools({ removeDevtoolsOnBuild: true }),
-		tsconfigPaths({ projects: ["./tsconfig.json"] }),
-		tailwindcss(),
-		tanstackRouter({ target: "react", autoCodeSplitting: true }),
-		viteReact({
-			babel: {
-				plugins: ["babel-plugin-react-compiler"],
+export default defineConfig(() => {
+	return {
+		plugins: [
+			devtools({ removeDevtoolsOnBuild: true }),
+			tsconfigPaths({ projects: ["./tsconfig.json"] }),
+			tailwindcss(),
+			tanstackRouter({ target: "react", autoCodeSplitting: true }),
+			viteReact({
+				babel: {
+					plugins: ["babel-plugin-react-compiler"],
+				},
+			}),
+		],
+		server: {
+			proxy: {
+				"/api": {
+					target: "http://localhost:3000",
+					changeOrigin: true,
+				},
 			},
-		}),
-	],
+		},
+	};
 });
-
-export default config;

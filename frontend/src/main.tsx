@@ -1,4 +1,5 @@
 import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { authClient } from "./lib/auth-client";
 import { routeTree } from "./routeTree.gen";
@@ -8,7 +9,7 @@ const router = createRouter({
 	defaultPreload: "intent",
 	scrollRestoration: true,
 	context: {
-		auth: null
+		auth: null,
 	},
 });
 
@@ -20,12 +21,21 @@ declare module "@tanstack/react-router" {
 
 function App() {
 	const { data, isPending } = authClient.useSession();
+	const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-	if (isPending) {
+	useEffect(() => {
+		if (!isPending) {
+			setIsInitialLoad(false);
+		}
+	}, [isPending]);
+
+	const context = useMemo(() => ({ auth: data }), [data]);
+
+	if (isInitialLoad) {
 		return null; // Or a loading spinner
 	}
 
-	return <RouterProvider router={router} context={{ auth: data }} />;
+	return <RouterProvider router={router} context={context} />;
 }
 
 const rootElement = document.getElementById("app");
