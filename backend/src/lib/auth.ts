@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, openAPI } from "better-auth/plugins";
+import { openAPI } from "better-auth/plugins";
 import { db } from "@/db/postgres";
 import { redis } from "@/db/redis";
 
@@ -26,7 +26,7 @@ export const auth = betterAuth({
 			await redis.del(key);
 		},
 	},
-	plugins: [openAPI(), admin()],
+	plugins: [openAPI()],
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false,
