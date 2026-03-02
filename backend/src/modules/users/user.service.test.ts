@@ -9,7 +9,7 @@ mock.module("./user.repository", () => ({
 		findByEmail: mock(async (_email: string) => null),
 		findByCpf: mock(async (_cpf: string) => null),
 		findByCnpj: mock(async (_cnpj: string) => null),
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		update: mock(async (id: string, data: any) => ({ id, ...data })),
 		findById: mock(async (id: string) => ({ id, name: "Test User" })),
 		softDelete: mock(async (id: string) => ({ id, deletedAt: new Date() })),
@@ -20,7 +20,7 @@ mock.module("./user.repository", () => ({
 mock.module("@/lib/auth", () => ({
 	auth: {
 		api: {
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			// biome-ignore lint/suspicious/noExplicitAny: mock
 			createUser: mock(async (data: any) => ({
 				user: { id: "123", ...data.body },
 			})),
@@ -31,19 +31,19 @@ mock.module("@/lib/auth", () => ({
 describe("UserService", () => {
 	afterEach(() => {
 		// Clear mocks after each test
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		(UserRepository.findByEmail as any).mockClear();
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		(UserRepository.findByCpf as any).mockClear();
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		(UserRepository.findByCnpj as any).mockClear();
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		(UserRepository.update as any).mockClear();
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		(UserRepository.findById as any).mockClear();
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		(UserRepository.softDelete as any).mockClear();
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: mock
 		(auth.api.createUser as any).mockClear();
 	});
 
@@ -67,7 +67,7 @@ describe("UserService", () => {
 		});
 
 		it("should throw an error if email is already in use", async () => {
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			// biome-ignore lint/suspicious/noExplicitAny: mock
 			(UserRepository.findByEmail as any).mockResolvedValueOnce({
 				id: "1",
 				email: "test@example.com",
@@ -104,7 +104,7 @@ describe("UserService", () => {
 		});
 
 		it("should throw an error if user is not found", async () => {
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			// biome-ignore lint/suspicious/noExplicitAny: mock
 			(UserRepository.findById as any).mockResolvedValueOnce(null);
 
 			const userId = "1";
@@ -129,7 +129,7 @@ describe("UserService", () => {
 		});
 
 		it("should throw an error if user is not found", async () => {
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			// biome-ignore lint/suspicious/noExplicitAny: mock
 			(UserRepository.findById as any).mockResolvedValueOnce(null);
 
 			const userId = "1";

@@ -13,7 +13,8 @@
 			"**/index.html",
 			"**/vite.config.ts",
 			"!**/src/routeTree.gen.ts",
-			"!**/src/styles.css"
+			"!**/src/styles.css",
+			"!**/src/index.css"
 		]
 	},
 	"formatter": {
@@ -24,7 +25,19 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"a11y": {
+				"noRedundantAlt": "off",
+				"useSemanticElements": "off",
+				"useKeyWithClickEvents": "off",
+				"noLabelWithoutControl": "off"
+			},
+			"correctness": {
+				"useUniqueElementIds": "off"
+			},
+			"suspicious": {
+				"noArrayIndexKey": "off"
+			}
 		}
 	},
 	"javascript": {

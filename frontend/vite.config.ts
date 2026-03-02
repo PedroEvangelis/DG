@@ -7,7 +7,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
 	plugins: [
-		devtools(),
+		devtools({ removeDevtoolsOnBuild: true }),
 		tsconfigPaths({ projects: ["./tsconfig.json"] }),
 		tailwindcss(),
 		tanstackRouter({ target: "react", autoCodeSplitting: true }),
