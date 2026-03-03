@@ -4,11 +4,10 @@ import { type Static, t } from "elysia";
 const envSchema = t.Object({
 	DATABASE_URL: t.String({ minLength: 1, error: "DATABASE_URL é obrigatória" }),
 	REDIS_URL: t.String({ minLength: 1, error: "REDIS_URL é obrigatória" }),
-	JWT_SECRET: t.String({
+	BETTER_AUTH_SECRET: t.String({
 		minLength: 10,
-		error: "JWT_SECRET deve ter no mínimo 10 caracteres",
+		error: "BETTER_AUTH_SECRET deve ter no mínimo 10 caracteres",
 	}),
-	PORT: t.String({ default: "3000" }),
 	FRONTEND_URL: t.String({
 		minLength: 1,
 		error: "FRONTEND_URL é obrigatória",
@@ -18,8 +17,7 @@ const envSchema = t.Object({
 const processEnv = {
 	DATABASE_URL: Bun.env.DATABASE_URL,
 	REDIS_URL: Bun.env.REDIS_URL,
-	JWT_SECRET: Bun.env.JWT_SECRET,
-	PORT: Bun.env.PORT || "3000",
+	BETTER_AUTH_SECRET: Bun.env.BETTER_AUTH_SECRET,
 	FRONTEND_URL: Bun.env.FRONTEND_URL,
 };
 

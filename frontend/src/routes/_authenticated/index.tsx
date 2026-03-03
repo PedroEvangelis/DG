@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
 	beforeLoad: ({ context }) => {
 		if (!context.auth?.session) {
 			throw redirect({
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
 
 function App() {
 	return (
-		<div className="min-h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900">
+		<div className="min-h-screen">
 			<h1>Dashboard</h1>
 		</div>
 	);

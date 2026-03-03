@@ -7,8 +7,8 @@ import type { User, Session } from "better-auth";
 import "@/index.css";
 
 export type AuthData = {
-	user: User,
-	session: Session
+	user: User;
+	session: Session;
 } | null;
 
 export interface RouterContext {
