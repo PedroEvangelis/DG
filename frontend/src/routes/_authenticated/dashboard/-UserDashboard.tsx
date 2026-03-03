@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { MapPin } from "lucide-react";
+import { AddressCreateDialog } from "@/components/forms/address-create-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
@@ -8,7 +10,7 @@ import type { Address } from "@/types";
 
 export function UserDashboard() {
 	const { data: session } = authClient.useSession();
-	const userId = session?.user?.id ?? 0;
+	const userId = session?.user?.id ?? "";
 
 	const { data: userResponse, isLoading: isUserLoading } = useQuery({
 		queryKey: ["user", userId],
@@ -45,7 +47,7 @@ export function UserDashboard() {
 								</TableRow>
 								<TableRow>
 									<TableCell className="font-bold">Cargo</TableCell>
-									<TableCell>{user?.role}</TableCell>
+									<TableCell className="capitalize">{user?.role}</TableCell>
 								</TableRow>
 								{user?.cpf && (
 									<TableRow>
@@ -76,21 +78,41 @@ export function UserDashboard() {
 					</CardContent>
 				</Card>
 				<Card>
-					<CardHeader>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle>Endereços</CardTitle>
+						<AddressCreateDialog userId={userId} />
 					</CardHeader>
 					<CardContent>
-						{addresses.map((address: Address) => (
-							<div key={address.id} className="mb-4">
-								<p>
-									{address.street}, {address.number}
-								</p>
-								<p>
-									{address.neighborhood}, {address.city} - {address.state}
-								</p>
-								<p>{address.cep}</p>
+						{addresses.length === 0 ? (
+							<div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+								<MapPin className="h-8 w-8 mb-2 opacity-20" />
+								<p>Nenhum endereço cadastrado.</p>
 							</div>
-						))}
+						) : (
+							<div className="space-y-4">
+								{addresses.map((address: Address) => (
+									<div
+										key={address.id}
+										className="p-3 border rounded-lg shadow-sm"
+									>
+										<p className="font-medium">
+											{address.street}, {address.number}
+										</p>
+										{address.complement && (
+											<p className="text-sm text-muted-foreground">
+												{address.complement}
+											</p>
+										)}
+										<p className="text-sm">
+											{address.neighborhood}, {address.city} - {address.state}
+										</p>
+										<p className="text-sm font-mono text-muted-foreground">
+											CEP: {address.cep}
+										</p>
+									</div>
+								))}
+							</div>
+						)}
 					</CardContent>
 				</Card>
 			</div>

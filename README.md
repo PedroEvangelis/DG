@@ -129,4 +129,7 @@ Não há requisitos de tecnologias ou frameworks específicos para o front-end o
 
 O código deve estar disponível nesta mesma plataforma de versionamento de código, contendo no README todas as instruções necessárias para colocar o projeto em execução.
 
-Na primeira execução ao menos um usuário administrador deve ser criado automaticamente, com credenciais documentadas no README.
+Na primeira execução ao menos um usuário administrador deve ser criado automaticamente, com as seguintes credenciais:
+
+- **E-mail:** admin@admin.com
+- **Senha:** password123
