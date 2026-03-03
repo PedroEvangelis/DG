@@ -101,3 +101,8 @@ code {
 	font-family:
 		source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
