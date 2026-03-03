@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { Role, ROLES } from "@/constants/roles";
+import { ROLES, type Role } from "@/constants/roles";
 import { authGuard } from "@/plugins/authGuard";
 import { createUserSchema, UserDTO, updateUserSchema } from "./user.schema";
 import { UserService } from "./user.service";
@@ -12,7 +12,10 @@ export const userController = new Elysia({ prefix: "/users" })
 			const user = session!.user;
 
 			try {
-				const users = await UserService.findAll({ id: user.id, role: user.role! as Role });
+				const users = await UserService.findAll({
+					id: user.id,
+					role: user.role! as Role,
+				});
 				return { success: true as const, data: users };
 			} catch (_error) {
 				return { success: false as const, message: "Erro ao buscar usuários." };
@@ -119,8 +122,14 @@ export const userController = new Elysia({ prefix: "/users" })
 					set.status = 403;
 					return { success: false as const, message: "Acesso negado." };
 				}
+				
+				const sessUser = session!.user;
 
-				const updatedUser = await UserService.update(params.id, body);
+				const updatedUser = await UserService.update(
+					params.id,
+					body,
+					{ id: sessUser.id, role: sessUser.role! as Role	},
+				);
 				return { success: true as const, data: updatedUser };
 			} catch (error: unknown) {
 				set.status = 400;

@@ -1,3 +1,4 @@
+import { ROLES, type Role } from "@/constants/roles";
 import { USER_TYPES, UserType } from "@/constants/userType";
 import { redis } from "@/db/redis";
 import { auth } from "@/lib/auth";
@@ -6,7 +7,6 @@ import { ReceitaWsService } from "@/modules/integrations/receitaws.service";
 import { CacheKeys } from "@/types/cache";
 import { UserRepository } from "./user.repository";
 import type { CreateUserInput, UpdateUserInput } from "./user.schema";
-import { Role } from "@/constants/roles";
 
 export const UserService = {
 	async create(data: CreateUserInput) {
@@ -154,10 +154,28 @@ export const UserService = {
 		return user;
 	},
 
-	async update(id: string, data: UpdateUserInput) {
+	async update(
+		id: string,
+		data: UpdateUserInput,
+		currentUser: { id: string; role: string },
+	) {
 		const user = await UserRepository.findById(id);
 		if (!user) {
 			throw new Error("Usuário não encontrado.");
+		}
+
+		if (data.type && data.type !== user.type) {
+			throw new Error(
+				"O tipo de usuário não pode ser alterado após a criação.",
+			);
+		}
+
+		if (
+			data.role &&
+			data.role !== user.role &&
+			currentUser.role !== ROLES.ADMIN
+		) {
+			throw new Error("Apenas administradores podem alterar permissões.");
 		}
 
 		const updateData = {
