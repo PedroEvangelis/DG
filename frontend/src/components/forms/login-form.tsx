@@ -10,10 +10,20 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+	Field,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+
+const loginSchema = z.object({
+	email: z.string().email("Endereço de email inválido"),
+	password: z.string().min(1, "A senha é obrigatória"),
+});
 
 export function LoginForm({
 	className,
@@ -27,6 +37,9 @@ export function LoginForm({
 			email: "",
 			password: "",
 		},
+		validators: {
+			onSubmit: loginSchema,
+		},
 		onSubmit: async ({ value }) => {
 			setError(null);
 			const { error: signInError } = await signIn.email({
@@ -35,7 +48,7 @@ export function LoginForm({
 			});
 
 			if (signInError) {
-				setError(signInError.message || "Failed to login");
+				setError(signInError.message || "Falha ao realizar login");
 				return;
 			}
 
@@ -52,6 +65,7 @@ export function LoginForm({
 				</CardHeader>
 				<CardContent>
 					<form
+						id="login-form"
 						onSubmit={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
@@ -64,72 +78,72 @@ export function LoginForm({
 									{error}
 								</div>
 							)}
-							<form.Field
-								name="email"
-								validators={{
-									onChange: z.string().email("Invalid email address"),
+							<form.Field name="email">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid}>
+											<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+											<Input
+												id={field.name}
+												name={field.name}
+												type="email"
+												placeholder="email@exemplo.com"
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+												aria-invalid={isInvalid}
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
 								}}
-							>
-								{(field) => (
-									<Field>
-										<FieldLabel htmlFor={field.name}>Email</FieldLabel>
-										<Input
-											id={field.name}
-											type="email"
-											placeholder="email@exemplo.com"
-											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-										/>
-										{field.state.meta.errors ? (
-											<p className="text-sm font-medium text-destructive">
-												{field.state.meta.errors.join(", ")}
-											</p>
-										) : null}
-									</Field>
-								)}
 							</form.Field>
-							<form.Field
-								name="password"
-								validators={{
-									onChange: z.string().min(1, "A senha é obrigatória"),
+							<form.Field name="password">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid}>
+											<div className="flex items-center">
+												<FieldLabel htmlFor={field.name}>Senha</FieldLabel>
+												<a
+													href="/forgot-password"
+													className="ml-auto text-sm underline-offset-4 hover:underline"
+												>
+													Esqueceu sua senha?
+												</a>
+											</div>
+											<Input
+												id={field.name}
+												name={field.name}
+												type="password"
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+												aria-invalid={isInvalid}
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
 								}}
-							>
-								{(field) => (
-									<Field>
-										<div className="flex items-center">
-											<FieldLabel htmlFor={field.name}>Senha</FieldLabel>
-											<a
-												href="/forgot-password"
-												className="ml-auto text-sm underline-offset-4 hover:underline"
-											>
-												Esqueceu sua senha?
-											</a>
-										</div>
-										<Input
-											id={field.name}
-											type="password"
-											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-										/>
-										{field.state.meta.errors ? (
-											<p className="text-sm font-medium text-destructive">
-												{field.state.meta.errors.join(", ")}
-											</p>
-										) : null}
-									</Field>
-								)}
 							</form.Field>
 							<form.Subscribe
 								selector={(state) => [state.canSubmit, state.isSubmitting]}
 							>
 								{([canSubmit, isSubmitting]) => (
-									<Field>
-										<Button type="submit" disabled={!canSubmit || isSubmitting}>
-											{isSubmitting ? "Entrando..." : "Login"}
-										</Button>
-									</Field>
+									<Button
+										type="submit"
+										form="login-form"
+										disabled={!canSubmit || isSubmitting}
+									>
+										{isSubmitting ? "Entrando..." : "Login"}
+									</Button>
 								)}
 							</form.Subscribe>
 						</FieldGroup>
