@@ -46,10 +46,10 @@ export const addressController = new Elysia({ prefix: "/api/addresses" })
 				address.userId !== session?.user.id
 			) {
 				set.status = 403;
-				return { success: false as const, message: "Acesso negado." };
+				return { success: false, message: "Acesso negado." };
 			}
 
-			return { success: true as const, data: address };
+			return { success: true, data: address };
 		},
 		{
 			isAuth: true,
@@ -94,6 +94,44 @@ export const addressController = new Elysia({ prefix: "/api/addresses" })
 				summary: "Criar endereço",
 				description: "Cria um novo endereço para o usuário autenticado.",
 			},
+			body: createAddressSchema,
+			response: {
+				201: t.Object({ success: t.Literal(true), data: AddressDTO }),
+				400: t.Object({
+					success: t.Literal(false),
+					message: t.String(),
+				}),
+			},
+		},
+	)
+	.post(
+		"/user/:userId",
+		async ({ body, params, set, session }) => {
+			try {
+				const newAddress = await AddressService.create(body, params.userId);
+				set.status = 201;
+				return { success: true as const, data: newAddress };
+			} catch (error) {
+				set.status = 400;
+				if (error instanceof Error) {
+					return { success: false as const, message: error.message };
+				}
+				return {
+					success: false as const,
+					message: "An unexpected error occurred.",
+				};
+			}
+		},
+		{
+			isAuth: true,
+			role: [ROLES.ADMIN],
+			detail: {
+				tags: ["Addresses"],
+				summary: "Criar endereço para um usuário",
+				description:
+					"Cria um novo endereço para um usuário específico (Admin).",
+			},
+			params: t.Object({ userId: t.String() }),
 			body: createAddressSchema,
 			response: {
 				201: t.Object({ success: t.Literal(true), data: AddressDTO }),

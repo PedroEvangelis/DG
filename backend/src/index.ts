@@ -13,7 +13,7 @@ await initRedis();
 const app = new Elysia()
 	.use(
 		cors({
-			origin: [env.FRONTEND_URL],
+			origin: [env.FRONTEND_URL, `http://localhost:${env.PORT}`],
 			credentials: true,
 			allowedHeaders: ["Content-Type", "Authorization"],
 		}),
@@ -23,6 +23,9 @@ const app = new Elysia()
 	.use(userController)
 	.use(addressController)
 	.use(integrationsController)
-	.listen(3000);
+	.on("start", () => {
+		console.log(`Server is running on http://localhost:${env.PORT}`);
+	})
+	.listen(env.PORT);
 
 export type App = typeof app;

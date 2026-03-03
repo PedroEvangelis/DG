@@ -1,5 +1,7 @@
 import { redis } from "@/db/redis";
 import { auth } from "@/lib/auth";
+import { validateCpf } from "@/lib/validators/cpf.validator";
+import { ReceitaWsService } from "@/modules/integrations/receitaws.service";
 import { CacheKeys } from "@/types/cache";
 import { UserRepository } from "./user.repository";
 import type { CreateUserInput, UpdateUserInput } from "./user.schema";
@@ -11,17 +13,53 @@ export const UserService = {
 			throw new Error("E-mail já está em uso.");
 		}
 
-		if (data.type === "pf" && data.cpf) {
+		if (data.type === "pf") {
+			if (!data.cpf) {
+				throw new Error("CPF é obrigatório para Pessoa Física.");
+			}
+			if (!validateCpf(data.cpf)) {
+				throw new Error("CPF inválido.");
+			}
 			const existingCpf = await UserRepository.findByCpf(data.cpf);
 			if (existingCpf) {
 				throw new Error("CPF já cadastrado.");
 			}
 		}
 
-		if (data.type === "pj" && data.cnpj) {
+		if (data.type === "pj") {
+			if (!data.cnpj) {
+				throw new Error("CNPJ é obrigatório para Pessoa Jurídica.");
+			}
 			const existingCnpj = await UserRepository.findByCnpj(data.cnpj);
 			if (existingCnpj) {
 				throw new Error("CNPJ já cadastrado.");
+			}
+
+			const companyData = await ReceitaWsService.getCompanyByCnpj(data.cnpj);
+			if (!companyData || companyData.status === "ERROR") {
+				throw new Error("CNPJ inválido ou não encontrado na Receita Federal.");
+			}
+
+			const normalize = (str: string) =>
+				str
+					.trim()
+					.toLowerCase()
+					.normalize("NFD")
+					.replace(/[\u0300-\u036f]/g, "");
+
+			if (normalize(companyData.nome) !== normalize(data.corporateName)) {
+				throw new Error(
+					`A Razão Social informada não corresponde à registrada para este CNPJ. Esperado: ${companyData.nome}`,
+				);
+			}
+
+			if (
+				companyData.fantasia &&
+				normalize(companyData.fantasia) !== normalize(data.tradeName)
+			) {
+				throw new Error(
+					`O Nome Fantasia informado não corresponde ao registrado para este CNPJ. Esperado: ${companyData.fantasia}`,
+				);
 			}
 		}
 
@@ -43,12 +81,12 @@ export const UserService = {
 			// Update the rest of the custom fields in our database directly
 			const updatedUser = await UserRepository.update(result.user.id, {
 				type: data.type,
-				cpf: data.cpf,
-				dob: data.dob ? new Date(data.dob) : undefined,
-				gender: data.gender,
-				corporateName: data.corporateName,
-				tradeName: data.tradeName,
-				cnpj: data.cnpj,
+				cpf: data.type === "pf" ? data.cpf : undefined,
+				dob: data.type === "pf" ? new Date(data.dob!) : undefined,
+				gender: data.type === "pf" ? data.gender : undefined,
+				corporateName: data.type === "pj" ? data.corporateName : undefined,
+				tradeName: data.type === "pj" ? data.tradeName : undefined,
+				cnpj: data.type === "pj" ? data.cnpj : undefined,
 			});
 
 			await redis.del(CacheKeys.usersAll());
