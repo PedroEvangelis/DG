@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { ROLES } from "@/constants/roles";
+import { Role, ROLES } from "@/constants/roles";
 import { authGuard } from "@/plugins/authGuard";
 import { createUserSchema, UserDTO, updateUserSchema } from "./user.schema";
 import { UserService } from "./user.service";
@@ -8,9 +8,11 @@ export const userController = new Elysia({ prefix: "/users" })
 	.use(authGuard)
 	.get(
 		"/",
-		async () => {
+		async ({ session }) => {
+			const user = session!.user;
+
 			try {
-				const users = await UserService.findAll();
+				const users = await UserService.findAll({ id: user.id, role: user.role! as Role });
 				return { success: true as const, data: users };
 			} catch (_error) {
 				return { success: false as const, message: "Erro ao buscar usuários." };
@@ -18,7 +20,7 @@ export const userController = new Elysia({ prefix: "/users" })
 		},
 		{
 			isAuth: true,
-			role: [ROLES.ADMIN],
+			role: [ROLES.ADMIN, ROLES.USER],
 			detail: {
 				tags: ["Users"],
 				summary: "Listar usuários",
@@ -80,6 +82,8 @@ export const userController = new Elysia({ prefix: "/users" })
 			}
 		},
 		{
+			isAuth: true,
+			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Users"],
 				summary: "Criar usuário",
@@ -162,14 +166,6 @@ export const userController = new Elysia({ prefix: "/users" })
 					};
 				}
 
-				if (
-					session?.user.role !== ROLES.ADMIN &&
-					user.id !== session?.user.id
-				) {
-					set.status = 403;
-					return { success: false as const, message: "Acesso negado." };
-				}
-
 				await UserService.delete(params.id);
 				return {
 					success: true as const,
@@ -188,6 +184,7 @@ export const userController = new Elysia({ prefix: "/users" })
 		},
 		{
 			isAuth: true,
+			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Users"],
 				summary: "Deletar usuário",

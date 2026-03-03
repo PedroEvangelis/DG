@@ -1,3 +1,4 @@
+import { USER_TYPES, UserType } from "@/constants/userType";
 import { redis } from "@/db/redis";
 import { auth } from "@/lib/auth";
 import { validateCpf } from "@/lib/validators/cpf.validator";
@@ -5,6 +6,7 @@ import { ReceitaWsService } from "@/modules/integrations/receitaws.service";
 import { CacheKeys } from "@/types/cache";
 import { UserRepository } from "./user.repository";
 import type { CreateUserInput, UpdateUserInput } from "./user.schema";
+import { Role } from "@/constants/roles";
 
 export const UserService = {
 	async create(data: CreateUserInput) {
@@ -70,7 +72,6 @@ export const UserService = {
 		}
 
 		try {
-			// Using betterAuth admin plugin to create user to handle password hashing easily
 			const result = await auth.api.createUser({
 				body: {
 					email: data.email,
@@ -84,15 +85,16 @@ export const UserService = {
 				throw new Error("Erro ao criar usuário na autenticação.");
 			}
 
-			// Update the rest of the custom fields in our database directly
+			const isPf = data.type === USER_TYPES.PF;
+
 			const updatedUser = await UserRepository.update(result.user.id, {
 				type: data.type,
-				cpf: data.type === "pf" ? data.cpf : undefined,
-				dob: data.type === "pf" ? new Date(data.dob) : undefined,
-				gender: data.type === "pf" ? data.gender : undefined,
-				corporateName: data.type === "pj" ? data.corporateName : undefined,
-				tradeName: data.type === "pj" ? data.tradeName : undefined,
-				cnpj: data.type === "pj" ? data.cnpj : undefined,
+				cpf: isPf ? data.cpf : undefined,
+				dob: isPf ? new Date(data.dob) : undefined,
+				gender: isPf ? data.gender : undefined,
+				corporateName: isPf ? data.corporateName : undefined,
+				tradeName: isPf ? data.tradeName : undefined,
+				cnpj: isPf ? data.cnpj : undefined,
 			});
 
 			await redis.del(CacheKeys.usersAll());
@@ -107,15 +109,34 @@ export const UserService = {
 		}
 	},
 
-	async findAll() {
+	async findAll({ id, role }: { id: string; role: Role }) {
 		const cacheKey = CacheKeys.usersAll();
 		const cached = await redis.get(cacheKey);
+
+		let users: any[];
 		if (cached) {
-			return JSON.parse(cached);
+			users = JSON.parse(cached);
+		} else {
+			users = await UserRepository.findAll();
+			await redis.set(cacheKey, JSON.stringify(users), "EX", 300); // Cache for 5 minutes
 		}
 
-		const users = await UserRepository.findAll();
-		await redis.set(cacheKey, JSON.stringify(users), "EX", 300); // Cache for 5 minutes
+		if (role !== "admin") {
+			return users.map((user) => {
+				if (user.id === id) return user;
+
+				return {
+					...user,
+					cpf: null,
+					cnpj: null,
+					dob: null,
+					gender: null,
+					corporateName: null,
+					tradeName: null,
+				};
+			});
+		}
+
 		return users;
 	},
 

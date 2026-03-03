@@ -1,5 +1,5 @@
 {
-  "id": "82474162-4b79-4263-9626-6ec4a78de893",
+  "id": "c773449d-c92e-437f-b91a-72b635de5c02",
   "prevId": "5f6d0bb5-399e-49f5-a8cb-fc31fcc8ce4d",
   "version": "7",
   "dialect": "postgresql",
@@ -309,6 +309,25 @@
         "cnpj": {
           "name": "cnpj",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banned": {
+          "name": "banned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "banReason": {
+          "name": "banReason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banExpires": {
+          "name": "banExpires",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         }

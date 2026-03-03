@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { ReceitaWsService, receitaWsResponseSchema } from "./receitaws.service";
 import { ViaCepService, viaCepResponseSchema } from "./viacep.service";
+import { ROLES } from "@/constants/roles";
 
 export const integrationsController = new Elysia({
 	prefix: "/integrations",
@@ -24,6 +25,8 @@ export const integrationsController = new Elysia({
 			};
 		},
 		{
+			isAuth: true,
+			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Integrations"],
 				summary: "Consultar CEP",
@@ -56,6 +59,8 @@ export const integrationsController = new Elysia({
 			};
 		},
 		{
+			isAuth: true,
+			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Integrations"],
 				summary: "Consultar CNPJ",

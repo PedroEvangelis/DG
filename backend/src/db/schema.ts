@@ -32,6 +32,12 @@ export const user = pgTable("user", {
 	corporateName: text("corporateName"),
 	tradeName: text("tradeName"),
 	cnpj: text("cnpj").unique(),
+
+
+	// Ban fields - Plugin admin do better-auth
+	banned: boolean("banned").notNull().default(false),
+	banReason: text("banReason"),
+	banExpiresAt: timestamp("banExpires"),
 });
 
 export const account = pgTable("account", {
