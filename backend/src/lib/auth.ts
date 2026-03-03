@@ -6,6 +6,7 @@ import { redis } from "@/db/redis";
 
 import * as schema from "@/db/schema";
 import { env } from "@/config/env";
+import { type UserType } from "@/constants/userType";
 
 export const auth = betterAuth({
 	trustedOrigins: [env.FRONTEND_URL],

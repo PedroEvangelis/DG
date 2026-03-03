@@ -1,6 +1,9 @@
+import { eq } from "drizzle-orm";
 import { ROLES, type Role } from "@/constants/roles";
-import { USER_TYPES, UserType } from "@/constants/userType";
+import { USER_TYPES } from "@/constants/userType";
+import { db } from "@/db/postgres";
 import { redis } from "@/db/redis";
+import { account } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { validateCpf } from "@/lib/validators/cpf.validator";
 import { ReceitaWsService } from "@/modules/integrations/receitaws.service";
@@ -72,12 +75,17 @@ export const UserService = {
 		}
 
 		try {
+			const generatedPassword =
+				data.password || Math.random().toString(36).slice(-10);
 			const result = await auth.api.createUser({
 				body: {
 					email: data.email,
-					password: data.password,
+					password: generatedPassword,
 					name: data.name,
 					role: data.role,
+					data: {
+						type: data.type,
+					}
 				},
 			});
 
@@ -99,7 +107,10 @@ export const UserService = {
 
 			await redis.del(CacheKeys.usersAll());
 
-			return updatedUser;
+			return {
+				...updatedUser,
+				temporaryPassword: generatedPassword,
+			};
 		} catch (error: unknown) {
 			console.error("Error creating user:", error);
 			if (error instanceof Error) {
@@ -140,17 +151,20 @@ export const UserService = {
 		return users;
 	},
 
-	async findById(id: string) {
+	async findById(id: string, _currentUser?: { id: string; role: string }) {
 		const cacheKey = CacheKeys.user(id);
 		const cached = await redis.get(cacheKey);
+
+		let user: any;
 		if (cached) {
-			return JSON.parse(cached);
+			user = JSON.parse(cached);
+		} else {
+			user = await UserRepository.findById(id);
+			if (user) {
+				await redis.set(cacheKey, JSON.stringify(user), "EX", 900); // Cache for 15 minutes
+			}
 		}
 
-		const user = await UserRepository.findById(id);
-		if (user) {
-			await redis.set(cacheKey, JSON.stringify(user), "EX", 900); // Cache for 15 minutes
-		}
 		return user;
 	},
 
@@ -191,6 +205,49 @@ export const UserService = {
 		return updatedUser;
 	},
 
+	async resetPassword(id: string) {
+		const user = await UserRepository.findById(id);
+		if (!user) {
+			throw new Error("Usuário não encontrado.");
+		}
+
+		const newPassword = Math.random().toString(36).slice(-10);
+		const hashedPassword = await Bun.password.hash(newPassword);
+
+		await db
+			.update(account)
+			.set({ password: hashedPassword })
+			.where(eq(account.userId, id));
+
+		return { temporaryPassword: newPassword };
+	},
+
+	async toggleStatus(id: string) {
+		const user = await UserRepository.findById(id);
+		if (!user) {
+			throw new Error("Usuário não encontrado.");
+		}
+
+		if (user.banned) {
+			await auth.api.unbanUser({
+				body: {
+					userId: id,
+				},
+			});
+		} else {
+			await auth.api.banUser({
+				body: {
+					userId: id,
+				},
+			});
+		}
+
+		await redis.del(CacheKeys.usersAll());
+		await redis.del(CacheKeys.user(id));
+
+		return { banned: !user.banned };
+	},
+
 	async delete(id: string) {
 		const user = await UserRepository.findById(id);
 		if (!user) {
@@ -205,3 +262,4 @@ export const UserService = {
 		return deletedUser;
 	},
 };
+

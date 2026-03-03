@@ -20,7 +20,7 @@ export const user = pgTable("user", {
 	image: text("image"),
 
 	role: userRole("role").notNull().default("user"),
-	type: userType("type").notNull(),
+	type: userType("type").notNull().default("pf"),
 	deletedAt: timestamp("deletedAt"),
 
 	// PF fields

@@ -9,11 +9,13 @@ const baseUserProps = {
 		error: "E-mail inválido",
 		description: "E-mail do usuário.",
 	}),
-	password: t.String({
-		minLength: 8,
-		error: "Senha deve ter no mínimo 8 caracteres",
-		description: "Senha do usuário.",
-	}),
+	password: t.Optional(
+		t.String({
+			minLength: 8,
+			error: "Senha deve ter no mínimo 8 caracteres",
+			description: "Senha do usuário.",
+		}),
+	),
 	name: t.String({
 		minLength: 2,
 		error: "Nome deve ter no mínimo 2 caracteres",
@@ -145,6 +147,7 @@ export const UserDTO = t.Object({
 	cnpj: t.Union([t.String(), t.Null()]),
 	createdAt: t.Union([t.Date(), t.String()]),
 	updatedAt: t.Union([t.Date(), t.String()]),
+	temporaryPassword: t.Optional(t.String()),
 });
 
 export type CreateUserInput = Static<typeof createUserSchema>;

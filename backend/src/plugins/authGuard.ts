@@ -12,6 +12,10 @@ export const authGuard = new Elysia({ name: "auth-guard" })
 				if (!session) {
 					return status(401, "Não autenticado");
 				}
+
+				if (session.user.banned) {
+					return status(403, "Acesso negado: Usuário inativo");
+				}
 			},
 		}),
 		role: (requiredRoles: Role[]) => ({
@@ -23,6 +27,10 @@ export const authGuard = new Elysia({ name: "auth-guard" })
 				const userRole = session.user.role as Role;
 				if (!requiredRoles.includes(userRole)) {
 					return status(403, "Acesso negado: Permissão insuficiente");
+				}
+
+				if (session.user.banned) {
+					return status(403, "Acesso negado: Usuário inativo");
 				}
 			},
 		}),
