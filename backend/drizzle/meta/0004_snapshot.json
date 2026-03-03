@@ -1,5 +1,5 @@
 {
-  "id": "5f6d0bb5-399e-49f5-a8cb-fc31fcc8ce4d",
+  "id": "d285fbf5-eb3a-48ab-bed2-8d8a0159aea0",
   "prevId": "d8dcee88-a698-4eff-96fe-aabae627dcef",
   "version": "7",
   "dialect": "postgresql",
@@ -257,31 +257,15 @@
         "role": {
           "name": "role",
           "type": "userRole",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'user'"
         },
-        "banned": {
-          "name": "banned",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "banReason": {
-          "name": "banReason",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "banExpires": {
-          "name": "banExpires",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
         "type": {
           "name": "type",
           "type": "userType",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -306,6 +290,7 @@
         "gender": {
           "name": "gender",
           "type": "userGender",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
@@ -324,6 +309,25 @@
         "cnpj": {
           "name": "cnpj",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banned": {
+          "name": "banned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "banReason": {
+          "name": "banReason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banExpires": {
+          "name": "banExpires",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         }
