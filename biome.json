@@ -33,7 +33,8 @@
 				"noLabelWithoutControl": "off"
 			},
 			"correctness": {
-				"useUniqueElementIds": "off"
+				"useUniqueElementIds": "off",
+				"noChildrenProp": "off"
 			},
 			"suspicious": {
 				"noArrayIndexKey": "off"

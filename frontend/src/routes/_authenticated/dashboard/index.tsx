@@ -1,4 +1,4 @@
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { ROLES } from "@/constants/roles";
@@ -19,9 +19,6 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 		}
 	},
 	component: Dashboard,
-	handle: {
-		crumb: () => "Dashboard",
-	},
 });
 
 function Dashboard() {

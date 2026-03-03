@@ -8,7 +8,7 @@ import {
 } from "./address.schema";
 import { AddressService } from "./address.service";
 
-export const addressController = new Elysia({ prefix: "/api/addresses" })
+export const addressController = new Elysia({ prefix: "/addresses" })
 	.use(authGuard)
 	.get(
 		"/user/:userId",
@@ -26,10 +26,12 @@ export const addressController = new Elysia({ prefix: "/api/addresses" })
 					"Retorna todos os endereços pertencentes a um determinado usuário.",
 			},
 			params: t.Object({ userId: t.String() }),
-			response: t.Object({
-				success: t.Literal(true),
-				data: t.Array(AddressDTO),
-			}),
+			response: {
+				200: t.Object({
+					success: t.Literal(true),
+					data: t.Array(AddressDTO),
+				}),
+			},
 		},
 	)
 	.get(
@@ -46,10 +48,10 @@ export const addressController = new Elysia({ prefix: "/api/addresses" })
 				address.userId !== session?.user.id
 			) {
 				set.status = 403;
-				return { success: false, message: "Acesso negado." };
+				return { success: false as const, message: "Acesso negado." };
 			}
 
-			return { success: true, data: address };
+			return { success: true as const, data: address };
 		},
 		{
 			isAuth: true,
@@ -106,7 +108,7 @@ export const addressController = new Elysia({ prefix: "/api/addresses" })
 	)
 	.post(
 		"/user/:userId",
-		async ({ body, params, set, session }) => {
+		async ({ body, params, set }) => {
 			try {
 				const newAddress = await AddressService.create(body, params.userId);
 				set.status = 201;

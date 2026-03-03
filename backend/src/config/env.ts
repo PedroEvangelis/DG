@@ -12,7 +12,7 @@ const envSchema = t.Object({
 		minLength: 1,
 		error: "FRONTEND_URL é obrigatória",
 	}),
-	PORT: t.Number({ default: 3000, error: "PORT deve ser um número" })
+	PORT: t.Number({ default: 3000, error: "PORT deve ser um número" }),
 });
 
 const processEnv = {
@@ -20,7 +20,7 @@ const processEnv = {
 	REDIS_URL: Bun.env.REDIS_URL,
 	BETTER_AUTH_SECRET: Bun.env.BETTER_AUTH_SECRET,
 	FRONTEND_URL: Bun.env.FRONTEND_URL,
-	PORT: process.env.PORT ? parseInt(process.env.PORT) : undefined,
+	PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : undefined,
 };
 
 const errors = [...Value.Errors(envSchema, processEnv)];

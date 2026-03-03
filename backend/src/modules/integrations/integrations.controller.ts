@@ -3,7 +3,7 @@ import { ReceitaWsService, receitaWsResponseSchema } from "./receitaws.service";
 import { ViaCepService, viaCepResponseSchema } from "./viacep.service";
 
 export const integrationsController = new Elysia({
-	prefix: "/api/integrations",
+	prefix: "/integrations",
 })
 	.get(
 		"/cep/:cep",

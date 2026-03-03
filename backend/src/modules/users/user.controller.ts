@@ -4,7 +4,7 @@ import { authGuard } from "@/plugins/authGuard";
 import { createUserSchema, UserDTO, updateUserSchema } from "./user.schema";
 import { UserService } from "./user.service";
 
-export const userController = new Elysia({ prefix: "/api/users" })
+export const userController = new Elysia({ prefix: "/users" })
 	.use(authGuard)
 	.get(
 		"/",

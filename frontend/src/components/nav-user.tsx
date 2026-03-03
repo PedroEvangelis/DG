@@ -88,15 +88,15 @@ export function NavUser({
 						{/* AJUSTE 2: Removido o DropdownMenuGroup que causava o erro de Context */}
 						<DropdownMenuItem>
 							<Settings className="mr-2 h-4 w-4" />
-							<span>Settings</span>
+							<span>Configurações</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem>
 							<HelpCircle className="mr-2 h-4 w-4" />
-							<span>Help</span>
+							<span>Ajuda</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem>
 							<Search className="mr-2 h-4 w-4" />
-							<span>Search</span>
+							<span>Busca</span>
 						</DropdownMenuItem>
 
 						<DropdownMenuSeparator />
@@ -113,7 +113,7 @@ export function NavUser({
 							}
 						>
 							<LogOut className="mr-2 h-4 w-4" />
-							<span>Log out</span>
+							<span>Sair</span>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

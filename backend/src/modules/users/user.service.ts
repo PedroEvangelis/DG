@@ -24,6 +24,12 @@ export const UserService = {
 			if (existingCpf) {
 				throw new Error("CPF já cadastrado.");
 			}
+			if (!data.dob) {
+				throw new Error("Data de nascimento é obrigatória para Pessoa Física.");
+			}
+			if (!data.gender) {
+				throw new Error("Gênero é obrigatório para Pessoa Física.");
+			}
 		}
 
 		if (data.type === "pj") {
@@ -82,7 +88,7 @@ export const UserService = {
 			const updatedUser = await UserRepository.update(result.user.id, {
 				type: data.type,
 				cpf: data.type === "pf" ? data.cpf : undefined,
-				dob: data.type === "pf" ? new Date(data.dob!) : undefined,
+				dob: data.type === "pf" ? new Date(data.dob) : undefined,
 				gender: data.type === "pf" ? data.gender : undefined,
 				corporateName: data.type === "pj" ? data.corporateName : undefined,
 				tradeName: data.type === "pj" ? data.tradeName : undefined,

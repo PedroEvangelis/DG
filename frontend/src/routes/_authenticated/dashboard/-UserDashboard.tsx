@@ -34,7 +34,7 @@ export function UserDashboard() {
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<Card>
 					<CardHeader>
-						<CardTitle>Welcome, {user?.name}!</CardTitle>
+						<CardTitle>Bem vindo, {user?.name}!</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<Table>
@@ -44,7 +44,7 @@ export function UserDashboard() {
 									<TableCell>{user?.email}</TableCell>
 								</TableRow>
 								<TableRow>
-									<TableCell className="font-bold">Role</TableCell>
+									<TableCell className="font-bold">Cargo</TableCell>
 									<TableCell>{user?.role}</TableCell>
 								</TableRow>
 								{user?.cpf && (
@@ -61,13 +61,13 @@ export function UserDashboard() {
 								)}
 								{user?.corporateName && (
 									<TableRow>
-										<TableCell className="font-bold">Corporate Name</TableCell>
+										<TableCell className="font-bold">Razão social</TableCell>
 										<TableCell>{user?.corporateName}</TableCell>
 									</TableRow>
 								)}
 								{user?.tradeName && (
 									<TableRow>
-										<TableCell className="font-bold">Trade Name</TableCell>
+										<TableCell className="font-bold">Nome Fantasia</TableCell>
 										<TableCell>{user?.tradeName}</TableCell>
 									</TableRow>
 								)}
@@ -77,7 +77,7 @@ export function UserDashboard() {
 				</Card>
 				<Card>
 					<CardHeader>
-						<CardTitle>Addresses</CardTitle>
+						<CardTitle>Endereços</CardTitle>
 					</CardHeader>
 					<CardContent>
 						{addresses.map((address: Address) => (

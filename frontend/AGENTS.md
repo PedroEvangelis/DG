@@ -35,8 +35,303 @@ Execute these inside the `frontend/` directory or using `bun -F frontend <comman
 - Read tokens or cookies securely as provided by Better Auth.
 
 **Forms & State Management:**
-- Forms must feature strict validation (e.g., **Zod**) providing immediate feedback on invalid fields (CPF, CNPJ, CEP).
-- Combine Zod schemas with shadcn/ui Form components (`react-hook-form` + `@hookform/resolvers/zod` is highly recommended).
+- All forms must be built using `@tanstack/react-form`.
+- Validation must be handled with **Zod**.
+- UI for forms must be built using **shadcn/ui** components.
+
+Here are the detailed guidelines:
+
+**1. Zod Schema for Validation**
+
+Always define a Zod schema for your form values and use it in the `useForm` hook.
+
+```tsx
+import { z } from 'zod'
+
+const userSchema = z.object({
+  age: z.number().gte(13, 'You must be 13 to make an account'),
+})
+
+function App() {
+  const form = useForm({
+    defaultValues: {
+      age: 0,
+    },
+    validators: {
+      onChange: userSchema,
+    },
+  })
+  return (
+    <div>
+      <form.Field
+        name="age"
+        children={(field) => {
+          return <>{/* ... */}</>
+        }}
+      />
+    </div>
+  )
+}
+```
+
+**2. Form Field Structure**
+
+Use `form.Field` to create your fields. Use `shadcn/ui` components like `Field`, `FieldLabel`, `Input`, and `FieldError` to structure the form field.
+
+A minimal input would be:
+```tsx
+<input
+  value={field.state.value}
+  onBlur={field.handleBlur}
+  onChange={(e) => field.handleChange(e.target.value)}
+/>
+```
+
+A complete field with validation:
+```tsx
+<form.Field
+  name="firstName"
+  validators={{
+    onChange: ({ value }) =>
+      !value
+        ? 'A first name is required'
+        : value.length < 3
+          ? 'First name must be at least 3 characters'
+          : undefined,
+    onChangeAsync: async ({ value }) => {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      return value.includes('error') && 'No "error" allowed in first name'
+    },
+  }}
+  children={(field) => (
+    <>
+      <input
+        value={field.state.value}
+        onBlur={field.handleBlur}
+        onChange={(e) => field.handleChange(e.target.value)}
+      />
+      <FieldInfo field={field} />
+    </>
+  )}
+/>
+```
+
+**3. Displaying Validation Errors**
+
+Check for the field's validity (`isTouched` and `!isValid`) and display errors using the `FieldError` component from `shadcn/ui`.
+
+```tsx
+<form.Field
+  name="email"
+  children={(field) => {
+    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+
+    return (
+      <Field data-invalid={isInvalid}>
+        <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+        <Input
+          id={field.name}
+          name={field.name}
+          value={field.state.value}
+          onBlur={field.handleBlur}
+          onChange={(e) => field.handleChange(e.target.value)}
+          type="email"
+          aria-invalid={isInvalid}
+        />
+        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+      </Field>
+    )
+  }}
+/>
+```
+
+**4. UI Reactivity**
+
+Provide feedback to the user about the form's state. You can subscribe to form state or use the `useStore` hook.
+
+```tsx
+const firstName = useStore(form.store, (state) => state.values.firstName)
+//...
+<form.Subscribe
+  selector={(state) => [state.canSubmit, state.isSubmitting]}
+  children={([canSubmit, isSubmitting]) => (
+    <button type="submit" disabled={!canSubmit}>
+      {isSubmitting ? '...' : 'Submit'}
+    </button>
+  )}
+/>
+```
+
+**5. Complete Example with `shadcn/ui`**
+
+This example shows how to combine all concepts.
+
+```tsx
+"use client"
+
+import * as React from "react"
+import { useForm } from "@tanstack/react-form"
+import { toast } from "sonner"
+import * as z from "zod"
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupText,
+  InputGroupTextarea,
+} from "@/components/ui/input-group"
+
+const formSchema = z.object({
+  title: z
+    .string()
+    .min(5, "Bug title must be at least 5 characters.")
+    .max(32, "Bug title must be at most 32 characters."),
+  description: z
+    .string()
+    .min(20, "Description must be at least 20 characters.")
+    .max(100, "Description must be at most 100 characters."),
+})
+
+export function BugReportForm() {
+  const form = useForm({
+    defaultValues: {
+      title: "",
+      description: "",
+    },
+    validators: {
+      onSubmit: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      toast("You submitted the following values:", {
+        description: (
+          <pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
+            <code>{JSON.stringify(value, null, 2)}</code>
+          </pre>
+        ),
+        position: "bottom-right",
+        classNames: {
+          content: "flex flex-col gap-2",
+        },
+        style: {
+          "--border-radius": "calc(var(--radius)  + 4px)",
+        } as React.CSSProperties,
+      })
+    },
+  })
+
+  return (
+    <Card className="w-full sm:max-w-md">
+      <CardHeader>
+        <CardTitle>Bug Report</CardTitle>
+        <CardDescription>
+          Help us improve by reporting bugs you encounter.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form
+          id="bug-report-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            form.handleSubmit()
+          }}
+        >
+          <FieldGroup>
+            <form.Field
+              name="title"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Bug Title</FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      placeholder="Login button not working on mobile"
+                      autoComplete="off"
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+            <form.Field
+              name="description"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                    <InputGroup>
+                      <InputGroupTextarea
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="I'm having an issue with the login button on mobile."
+                        rows={6}
+                        className="min-h-24 resize-none"
+                        aria-invalid={isInvalid}
+                      />
+                      <InputGroupAddon align="block-end">
+                        <InputGroupText className="tabular-nums">
+                          {field.state.value.length}/100 characters
+                        </InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                    <FieldDescription>
+                      Include steps to reproduce, expected behavior, and what
+                      actually happened.
+                    </FieldDescription>
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+          </FieldGroup>
+        </form>
+      </CardContent>
+      <CardFooter>
+        <Field orientation="horizontal">
+          <Button type="button" variant="outline" onClick={() => form.reset()}>
+            Reset
+          </Button>
+          <Button type="submit" form="bug-report-form">
+            Submit
+          </Button>
+        </Field>
+      </CardFooter>
+    </Card>
+  )
+}
+```
 
 **Error Handling:**
 - Always handle API failures gracefully. Display clear, translated error messages to the user detailing exactly what failed and why using toasts or inline alerts.

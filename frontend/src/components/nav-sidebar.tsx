@@ -21,7 +21,7 @@ const navMainData = [
 		icon: ChartColumn,
 	},
 	{
-		title: "Team",
+		title: "Time",
 		url: "/team",
 		icon: Users,
 	},

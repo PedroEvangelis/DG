@@ -14,9 +14,7 @@ export const Route = createFileRoute("/_authenticated/")({
 function App() {
 	return (
 		<div className="flex flex-col items-center justify-center">
-			<div className="flex items-center justify-center">
-				Bem vindo!
-			</div>
+			<div className="flex items-center justify-center">Bem vindo!</div>
 		</div>
 	);
 }
