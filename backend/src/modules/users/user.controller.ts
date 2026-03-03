@@ -53,7 +53,7 @@ export const userController = new Elysia({ prefix: "/api/users" })
 				summary: "Detalhes do usuário",
 				description: "Retorna os detalhes de um usuário específico pelo ID.",
 			},
-			params: t.Object({ id: t.String({ format: "uuid" }) }),
+			params: t.Object({ id: t.String() }),
 			response: {
 				200: t.Object({ success: t.Literal(true), data: UserDTO }),
 				404: t.Object({ success: t.Literal(false), message: t.String() }),
@@ -136,7 +136,7 @@ export const userController = new Elysia({ prefix: "/api/users" })
 				summary: "Atualizar usuário",
 				description: "Atualiza os dados de um usuário existente pelo ID.",
 			},
-			params: t.Object({ id: t.String({ format: "uuid" }) }),
+			params: t.Object({ id: t.String() }),
 			body: updateUserSchema,
 			response: {
 				200: t.Object({ success: t.Literal(true), data: UserDTO }),
@@ -193,7 +193,7 @@ export const userController = new Elysia({ prefix: "/api/users" })
 				summary: "Deletar usuário",
 				description: "Realiza a exclusão lógica (soft delete) de um usuário.",
 			},
-			params: t.Object({ id: t.String({ format: "uuid" }) }),
+			params: t.Object({ id: t.String() }),
 			response: {
 				200: t.Object({ success: t.Literal(true), message: t.String() }),
 				400: t.Object({ success: t.Literal(false), message: t.String() }),

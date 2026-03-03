@@ -1,8 +1,11 @@
+import { QueryClient } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { authClient } from "./lib/auth-client";
 import { routeTree } from "./routeTree.gen";
+
+const queryClient = new QueryClient();
 
 const router = createRouter({
 	routeTree,
@@ -10,6 +13,7 @@ const router = createRouter({
 	scrollRestoration: true,
 	context: {
 		auth: null,
+		queryClient,
 	},
 });
 

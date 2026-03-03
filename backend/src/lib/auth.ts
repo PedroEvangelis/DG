@@ -33,4 +33,19 @@ export const auth = betterAuth({
 		enabled: true,
 		requireEmailVerification: false,
 	},
+	callbacks: {
+		user: async (user) => {
+			const dbUser = await db.query.user.findFirst({
+				where: (dbUser, { eq }) => eq(dbUser.id, user.id),
+			});
+			if (dbUser) {
+				user.role = dbUser.role;
+			}
+			return user;
+		},
+		session: async (session, user) => {
+			session.user.role = user.role;
+			return session;
+		},
+	},
 });

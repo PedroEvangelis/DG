@@ -1,8 +1,9 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { FormDevtoolsPanel } from "@tanstack/react-form-devtools";
+import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import type { User, Session } from "better-auth";
+import type { Session, User } from "better-auth";
 
 import "@/index.css";
 
@@ -13,6 +14,7 @@ export type AuthData = {
 
 export interface RouterContext {
 	auth: AuthData;
+	queryClient: QueryClient;
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({

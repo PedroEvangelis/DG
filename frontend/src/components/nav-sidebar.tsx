@@ -1,5 +1,5 @@
+import { ChartColumn, Users } from "lucide-react";
 import type * as React from "react";
-import { Users, ChartColumn } from "lucide-react";
 
 import { NavUser } from "@/components/nav-user";
 import {
@@ -17,7 +17,7 @@ import { NavMain } from "./nav-main";
 const navMainData = [
 	{
 		title: "Dashboard",
-		url: "/",
+		url: "/dashboard",
 		icon: ChartColumn,
 	},
 	{
@@ -35,14 +35,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 		<Sidebar variant="floating" collapsible="offcanvas" {...props}>
 			<SidebarHeader>
 				<SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton            >
-              <a href="#" className="flex flex-row items-center gap-4">
-                <img src="/favicon.ico" alt="logo" className="size-5"/>
-                <span className="text-base font-semibold">Digital One </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+					<SidebarMenuItem>
+						<SidebarMenuButton>
+							<a href="/" className="flex flex-row items-center gap-4">
+								<img src="/favicon.ico" alt="logo" className="size-5" />
+								<span className="text-base font-semibold">Digital One </span>
+							</a>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>

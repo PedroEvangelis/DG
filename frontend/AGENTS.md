@@ -44,4 +44,4 @@ Execute these inside the `frontend/` directory or using `bun -F frontend <comman
 ## 4. Code Style & Naming
 - Components: `PascalCase.tsx` or `kebab-case.tsx`, stick to the router's convention for page files.
 - Utilities: `camelCase.ts` or `kebab-case.ts`.
-- Always use absolute paths (e.g., `#/*` via `imports` in `package.json`) where configured.
+- Always use absolute paths (e.g., `@/*` via `imports` in `package.json`) where configured.

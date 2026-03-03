@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 
 import {
@@ -19,18 +20,22 @@ export function NavMain({
 }) {
 	return (
 		<SidebarGroup>
-      <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+			<SidebarGroupContent className="flex flex-col gap-2">
+				<SidebarMenu>
+					{items.map((item) => (
+						<SidebarMenuItem key={item.title}>
+							<Link to={item.url} className="w-full">
+								{({ isActive }) => (
+									<SidebarMenuButton tooltip={item.title} isActive={isActive}>
+										{item.icon && <item.icon />}
+										<span>{item.title}</span>
+									</SidebarMenuButton>
+								)}
+							</Link>
+						</SidebarMenuItem>
+					))}
+				</SidebarMenu>
+			</SidebarGroupContent>
+		</SidebarGroup>
 	);
 }
