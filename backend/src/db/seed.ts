@@ -1,10 +1,9 @@
+import { and, eq, isNull } from "drizzle-orm";
 import { ROLES } from "@/constants/roles";
 import { USER_TYPES } from "@/constants/userType";
+import { auth } from "@/lib/auth";
 import { db } from "./postgres";
 import { account, user } from "./schema";
-import { auth } from "@/lib/auth";
-import { and, eq, isNull } from "drizzle-orm";
-
 
 async function seed() {
 	console.log("Seeding admin user...");
@@ -23,21 +22,21 @@ async function seed() {
 			process.exit(0);
 		}
 
-		const { user: newUser  } = await auth.api.createUser({
+		const { user: newUser } = await auth.api.createUser({
 			body: {
 				email: adminEmail,
 				password,
 				role: ROLES.ADMIN,
 				name: "Admin User",
-			}
-		})
+			},
+		});
 
 		console.log("Inserting user...");
 		const [updatedUser] = await db
 			.update(user)
-			.set({ 
+			.set({
 				type: USER_TYPES.PF,
-				cpf: "00000000000", 
+				cpf: "00000000000",
 			})
 			.where(and(eq(user.id, newUser.id), isNull(user.deletedAt)))
 			.returning();

@@ -1,8 +1,8 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/nav-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { QueryClientProvider } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated")({
 	beforeLoad: ({ context }) => {

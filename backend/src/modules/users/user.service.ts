@@ -85,7 +85,7 @@ export const UserService = {
 					role: data.role,
 					data: {
 						type: data.type,
-					}
+					},
 				},
 			});
 
@@ -262,4 +262,3 @@ export const UserService = {
 		return deletedUser;
 	},
 };
-

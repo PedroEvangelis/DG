@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
+import { ROLES } from "@/constants/roles";
 import { ReceitaWsService, receitaWsResponseSchema } from "./receitaws.service";
 import { ViaCepService, viaCepResponseSchema } from "./viacep.service";
-import { ROLES } from "@/constants/roles";
 
 export const integrationsController = new Elysia({
 	prefix: "/integrations",

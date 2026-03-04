@@ -1,12 +1,11 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, openAPI } from "better-auth/plugins";
+import { env } from "@/config/env";
+import type { UserType } from "@/constants/userType";
 import { db } from "@/db/postgres";
 import { redis } from "@/db/redis";
-
 import * as schema from "@/db/schema";
-import { env } from "@/config/env";
-import { type UserType } from "@/constants/userType";
 
 export const auth = betterAuth({
 	trustedOrigins: [env.FRONTEND_URL],
@@ -33,5 +32,5 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false,
-	}
+	},
 });
