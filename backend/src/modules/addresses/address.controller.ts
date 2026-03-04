@@ -12,13 +12,21 @@ export const addressController = new Elysia({ prefix: "/addresses" })
 	.use(authGuard)
 	.get(
 		"/user/:userId",
-		async ({ params }) => {
+		async ({ params, set, session }) => {
+			if (
+				params.userId !== session?.user.id &&
+				session?.user.role !== ROLES.ADMIN
+			) {
+				set.status = 403;
+				return { success: false as const, message: "Acesso negado." };
+			}
+
 			const addresses = await AddressService.findByUserId(params.userId);
+
 			return { success: true as const, data: addresses };
 		},
 		{
 			isAuth: true,
-			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Addresses"],
 				summary: "Endereços do usuário",
@@ -31,6 +39,7 @@ export const addressController = new Elysia({ prefix: "/addresses" })
 					success: t.Literal(true),
 					data: t.Array(AddressDTO),
 				}),
+				403: t.Object({ success: t.Literal(false), message: t.String() }),
 			},
 		},
 	)
@@ -108,7 +117,15 @@ export const addressController = new Elysia({ prefix: "/addresses" })
 	)
 	.post(
 		"/user/:userId",
-		async ({ body, params, set }) => {
+		async ({ body, params, set, session }) => {
+			if (
+				params.userId !== session?.user.id &&
+				session?.user.role !== ROLES.ADMIN
+			) {
+				set.status = 403;
+				return { success: false as const, message: "Acesso negado." };
+			}
+
 			try {
 				const newAddress = await AddressService.create(body, params.userId);
 				set.status = 201;
@@ -126,7 +143,6 @@ export const addressController = new Elysia({ prefix: "/addresses" })
 		},
 		{
 			isAuth: true,
-			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Addresses"],
 				summary: "Criar endereço para um usuário",

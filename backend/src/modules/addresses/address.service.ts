@@ -19,7 +19,12 @@ export const AddressService = {
 		const cacheKey = CacheKeys.address(id);
 		const cached = await redis.get(cacheKey);
 		if (cached) {
-			return JSON.parse(cached);
+			const data = JSON.parse(cached);
+			return {
+				...data,
+				createdAt: new Date(data.createdAt),
+				updatedAt: new Date(data.updatedAt),
+			};
 		}
 
 		const address = await AddressRepository.findById(id);
@@ -33,7 +38,12 @@ export const AddressService = {
 		const cacheKey = CacheKeys.addressesByUser(userId);
 		const cached = await redis.get(cacheKey);
 		if (cached) {
-			return JSON.parse(cached);
+			const data = JSON.parse(cached);
+			return data.map((item: any) => ({
+				...item,
+				createdAt: new Date(item.createdAt),
+				updatedAt: new Date(item.updatedAt),
+			}));
 		}
 
 		const addresses = await AddressRepository.findByUserId(userId);

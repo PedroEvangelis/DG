@@ -26,7 +26,6 @@ export const integrationsController = new Elysia({
 		},
 		{
 			isAuth: true,
-			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Integrations"],
 				summary: "Consultar CEP",
@@ -60,7 +59,6 @@ export const integrationsController = new Elysia({
 		},
 		{
 			isAuth: true,
-			role: [ROLES.ADMIN],
 			detail: {
 				tags: ["Integrations"],
 				summary: "Consultar CNPJ",
