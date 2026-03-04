@@ -6,7 +6,7 @@ Para rodar o projeto completo utilizando Docker (recomendado), execute os seguin
 
 ```bash
 # 1. Copie o arquivo de variáveis de ambiente (ajuste se necessário)
-cp .env.example .env
+cp .env.example ./backend/.env
 
 # 2. Suba os containers (isso fará o build, migrações e seed automaticamente)
 docker compose up -d --build
