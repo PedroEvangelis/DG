@@ -1,135 +1,97 @@
-## Foco
+# Detalhes do Projeto - Teste Técnico DG
 
-Este teste avaliará questões relacionados a análise de software, organização e regras de negócio.
-
-Todo o sistema e dados será acessível após o usuário estar logado.
-
-## Requisitos
-
-### Arquiteturais
-
-- Front-end e back-end separados, de modo que possam ser hospedados até mesmo em servidores distintos.
-
-### De Negócio
-
-- Login
-- CRUD de Usuários
-	- *<Caso Pessoa Física>*
-		- Nome
-		- Nascimento
-		- CPF
-		- Gênero
-	- *<Caso Pessoa Jurídica>*
-		- Razão Social
-		- Nome Fantasia
-		- CNPJ
-	- Email
-	- Endereço
-		- CEP
-		- Logradouro
-		- Bairro
-		- Número
-		- Complemento
-		- Estado
-		- Cidade
-	- Situação (Status)
-		- Ativo
-		- Inativo
-- Níveis de Permissão
-	- Simples
-	- Administrador
-- Integrações com APIs públicas
-	- [ViaCEP](https://viacep.com.br/), para consulta de endereços;
-	- [ReceitaWS](https://developers.receitaws.com.br/#/operations/queryRFFree), para consulta de CNPJ.
-- Documentação;
-- Organização.
-
-## Descrição
-
-### Login
-
-Usuários devem acessar o sistema utilizando Email e senha, contanto que não estejam inativos.
-
-### CRUD de Usuários
-
-Usuários serão divididos em dois tipos: Pessoas Físicas e Pessoas Jurídicas. O tipo do usuário deverá ser definido durante sua criação, e nunca mais alterado.
-
-Existirá permissões de usuários "Administrador" e usuários "Simples". Usuários poderão ver os dados de outros usuários, e até mesmo modificar-los dependendo de sua permissão. Porém analise a aplique regras para que não haja abusos no sistema, como usuários vendo dados sensíveis ou alterando as próprias permissões.
-
-É importante que os usuários possam alterar suas próprias senhas, porém também é interessante uma maneira de Administradores resetarem a senha dos usuários, caso a esqueçam. As senhas devem ser geradas aleatoriamente.
-
-> Não é necessário implementar envio de email. O Administrador pode enviar a senha manualmente para o usuário.
-
-Administradores podem apagar usuários do sistema, contudo, certifique-se de aplicar a técnica de soft-delete no banco de dados, para evitar que os dados sejam apagados imediatamente.
-
-#### Validação
-
-Os seguintes campos são obrigatórios:
-
-- Email
-- *<Caso Pessoa Física>*
-	- CPF
-	- Nome
-- *<Caso Pessoa Jurídica>*
-	- Razão Social
-	- Nome Fantasia
-	- CNPJ
-
-Todos os campos devem possuir as validações aplicáveis; até mesmo campos opcionais, caso possuam valor. Por exemplo: o CPF e CNPJ devem ser válidos, e o CEP ter o formato correto.
-
-Os campos Email, CPF e CNPJ devem ser únicos; ou seja, não pode conter usuários existentes com tais informações duplicadas.
-
-> Não se esqueça de deixar claro ao usuário quais campos estão inválidos, e seus motivos.
-
-### Informações Vagas
-
-Algumas informações foram deixadas propositalmente vagas para analisar qual estratégia será utilizada na solução. Pense em quesitos de segurança, usuários mal-intencionados, e como implementar/limitar as permissões.
-
-Ação                                 | Simples | Administrador
--------------------------------------|:-------:|:-------------:
-Criar usuários                       |    ❌  	|       ✅
-Deletar usuários                     |    ❌   |       ✅
-Inativar usuários                    |    ❌   |       ✅
-Editar dados próprios                |    ✅   |       ✅
-Editar dados de outros               |    ❌   |       ✅
-Visualizar dados próprios            |    ✅   |       ✅
-Visualizar dados de outros           |    ✅   |       ✅
-Visualizar dados sensíveis de outros |    ❌   |       ✅
-Alterar permissões próprias          |    ❌   |       ✅
-Alterar permissões de outros         |    ❌   |       ✅
-Alterar própria senha                |    ✅   |       ✅
-Resetar senha de usuários            |    ❌   |       ✅
-
-### Integrações com APIs públicas
-
-As APIs públicas citadas devem ser integradas para consulta de endereço por CEP e dados da empresa por CNPJ.
-
-### Documentação
-
-As rotas da API devem ser documentadas utilizando algum método de documentação, porém deve ser no mínimo acessível um arquivo de especificação no padrão OpenAPI (Swagger), ou uma página web com tal documentação (`/api/docs`).
-
-### Organização
-
-Não é imposto nenhuma filosofia/padrão específico de organização do projeto. Apenas o tenha organizado e coerente.
-
-## UI
-
-Mantenha a interface do sistema direta e intuitiva, pensando em usuários sem tanto conhecimento técnico.
-
-## Liberdades
-
-Não há requisitos de tecnologias ou frameworks específicos para o front-end ou back-end. Utilize o que se sentir mais confortável.
-
-## Bônus
-
-- Diagrama de Entidade e Relacionamento (DER) do esquemático do banco de dados;
-- Back-end intermediando acesso às APIs públicas, ao invés de realizadas direto pelo front-end.
-
-## Entrega
-
-O código deve estar disponível nesta mesma plataforma de versionamento de código, contendo no README todas as instruções necessárias para colocar o projeto em execução.
-
+Este projeto é uma implementação full-stack de um **Sistema de Gerenciamento de Usuários (CRUD)** com Autenticação e Controle de Acesso Baseado em Regras (RBAC).
 Na primeira execução ao menos um usuário administrador deve ser criado automaticamente, com as seguintes credenciais:
 
 - **E-mail:** admin@admin.com
 - **Senha:** password123
+
+## 🚀 Estrutura do Projeto
+
+O repositório é um monorepo gerenciado pelo **Bun** e possui a seguinte estrutura:
+
+- `/backend`: API construída com **ElysiaJS**, **Drizzle ORM** (PostgreSQL) e **Better Auth**.
+- `/frontend`: Aplicação SPA construída com **React 19**, **Vite** e **TanStack Router**.
+
+### 🛠️ Tecnologias Principais
+
+#### Backend
+- **Bun**: Runtime e gerenciador de pacotes extremamente rápido.
+- **ElysiaJS**: Framework web de alta performance para Bun com suporte nativo a TypeScript.
+  - **OpenAPI/Swagger**: Documentação automática acessível em `/api/docs`.
+- **Better Auth**: Solução de autenticação completa e segura para aplicações Bun.
+- **Drizzle ORM**: ORM leve e tipado para interações seguras com o PostgreSQL.
+- **PostgreSQL**: Banco de dados relacional.
+- **Redis**: Utilizado pelo Better Auth para armazenamento de sessões secundárias.
+
+#### Frontend
+- **React 19**: Versão mais recente da biblioteca.
+- **Vite**: Bundler rápido para desenvolvimento moderno.
+- **TanStack Router**: Roteamento baseado em arquivos com tipagem estática rigorosa.
+- **TanStack Form**: Gerenciamento de formulários typesafe.
+- **Elysia Eden**: Cliente fetch typesafe que compartilha os tipos diretamente do backend.
+- **shadcn/ui**: Componentes de UI modernos e acessíveis baseados em Tailwind CSS.
+- **Tailwind CSS v4**: Estilização utilitária.
+- **Zod**: Validação de dados.
+
+## ⚙️ Decisões Técnicas Importantes
+
+### 🏗️ Experiência do Desenvolvedor (DX)
+- **Elysia + Eden**: Ao utilizar o Elysia no backend e o Eden no frontend, garantimos que toda a comunicação via rede seja 100% tipada. Se uma rota mudar no backend, o frontend acusará erro de compilação imediatamente, eliminando erros comuns de integração.
+- **OpenAPI Nativo**: O Elysia gera automaticamente a especificação OpenAPI com interface do Scalar. Isso não apenas documenta a API, mas também permite testes rápidos sem a necessidade de ferramentas externas como Postman.
+
+### 🛣️ Roteamento e Formulários
+- **TanStack Router**: Escolhido por ser o padrão ouro atual para roteamento em React, oferecendo carregamento de dados (loaders), tratamento de erros e tipagem de parâmetros de URL nativamente.
+- **TanStack Form**: Permite validação complexa (como CPF/CNPJ) de forma performática e totalmente integrada com o ecossistema TanStack.
+
+### 🔐 Segurança
+- **Better Auth**: Implementado para gerenciar sessões de forma segura, suportando RBAC (Admin vs Simple users).
+
+## 📦 Como rodar em Produção
+
+### Variáveis de Ambiente
+Copie o arquivo `.env.example` para `.env` na raiz e preencha os valores:
+```bash
+cp .env.example .env
+```
+
+### Docker
+Foram criados Dockerfiles específicos para cada parte da aplicação.
+
+#### Rodando com Docker Compose (Completo)
+O Docker Compose já está configurado para subir o banco de dados, o redis, aplicar as migrações e realizar o seed do usuário administrador automaticamente antes de iniciar o backend e o frontend.
+
+Para subir tudo:
+```bash
+docker-compose up -d
+```
+Isso disponibilizará:
+- Frontend: `http://localhost:80`
+- Backend: `http://localhost:3000`
+- API Docs: `http://localhost:3000/api/docs`
+
+#### Backend separadamente:
+```bash
+cd backend
+docker build -t dg-backend .
+docker run -p 3000:3000 --env-file ../.env dg-backend
+```
+
+#### Frontend separadamente:
+```bash
+cd frontend
+docker build -t dg-frontend .
+docker run -p 80:80 dg-frontend
+```
+
+## 🌱 Seed do Banco de Dados
+O seed do usuário administrador inicial obrigatório (**admin@admin.com** / **password123**) é feito automaticamente pelo Docker ao subir o ambiente. Caso queira rodar manualmente em um ambiente de desenvolvimento local:
+
+```bash
+# Na raiz do projeto
+bun run db:seed
+```
+*Ou, se estiver dentro da pasta /backend:* `bun run db:seed`
+
+## 📡 Integrações Externas
+O backend atua como um proxy para as APIs da **ViaCEP** e **ReceitaWS**, evitando problemas de CORS e protegendo a lógica de integração no servidor.

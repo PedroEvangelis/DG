@@ -5,6 +5,7 @@
   "workspaces": ["backend", "frontend"],
   "scripts": {
     "dev": "concurrently -n BACK,FRONT -c blue,magenta \"bun -F backend dev\" \"bun -F frontend dev\"",
+    "db:seed": "bun -F backend db:seed",
     "build": "bun run check && bun -F backend run build",
     "format": "biome format",
     "lint": "biome lint",
