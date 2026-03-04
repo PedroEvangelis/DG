@@ -1,5 +1,23 @@
 # Detalhes do Projeto - Teste Técnico DG
 
+## 🛠️ Como Inicializar o Projeto (Rápido)
+
+Para rodar o projeto completo utilizando Docker (recomendado), execute os seguintes comandos na raiz:
+
+```bash
+# 1. Copie o arquivo de variáveis de ambiente (ajuste se necessário)
+cp .env.example .env
+
+# 2. Suba os containers (isso fará o build, migrações e seed automaticamente)
+docker compose up -d --build
+```
+
+Aguarde alguns instantes e acesse:
+- **Frontend:** [http://localhost](http://localhost)
+- **Documentação da API:** [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+
+---
+
 Este projeto é uma implementação full-stack de um **Sistema de Gerenciamento de Usuários (CRUD)** com Autenticação e Controle de Acesso Baseado em Regras (RBAC).
 Na primeira execução ao menos um usuário administrador deve ser criado automaticamente, com as seguintes credenciais:
 
