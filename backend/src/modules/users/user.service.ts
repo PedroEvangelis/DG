@@ -205,25 +205,28 @@ export const UserService = {
 		return updatedUser;
 	},
 
-	async resetPassword(id: string) {
+	async resetPassword(id: string, headers: Record<string, string>) {
 		const user = await UserRepository.findById(id);
 		if (!user) {
 			throw new Error("Usuário não encontrado.");
 		}
 
 		const newPassword = Math.random().toString(36).slice(-10);
-		const hashedPassword = await Bun.password.hash(newPassword);
 
-		await db
-			.update(account)
-			.set({ password: hashedPassword })
-			.where(eq(account.userId, id));
+		await auth.api.setUserPassword({
+			body: {
+				userId: id, 
+			 	newPassword: newPassword
+			},
+			headers: headers,
+		});
 
 		return { temporaryPassword: newPassword };
 	},
 
-	async toggleStatus(id: string) {
+	async toggleStatus(id: string, headers: Record<string, string>) {
 		const user = await UserRepository.findById(id);
+
 		if (!user) {
 			throw new Error("Usuário não encontrado.");
 		}
@@ -239,6 +242,7 @@ export const UserService = {
 				body: {
 					userId: id,
 				},
+				headers: headers,
 			});
 		}
 

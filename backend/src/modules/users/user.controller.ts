@@ -220,9 +220,9 @@ export const userController = new Elysia({ prefix: "/users" })
 	)
 	.post(
 		"/:id/reset-password",
-		async ({ params, set }) => {
+		async ({ params, set, headers }) => {
 			try {
-				const result = await UserService.resetPassword(params.id);
+				const result = await UserService.resetPassword(params.id, headers as Record<string, string>);
 				return { success: true as const, data: result };
 			} catch (error: unknown) {
 				set.status = 400;
@@ -256,11 +256,12 @@ export const userController = new Elysia({ prefix: "/users" })
 	)
 	.post(
 		"/:id/toggle-status",
-		async ({ params, set }) => {
+		async ({ params, set, headers }) => {
 			try {
-				const result = await UserService.toggleStatus(params.id);
+				const result = await UserService.toggleStatus(params.id, headers as Record<string, string>);
+
 				return { success: true as const, data: result };
-			} catch (error: unknown) {
+			} catch (error) {
 				set.status = 400;
 				if (error instanceof Error) {
 					return { success: false as const, message: error.message };
