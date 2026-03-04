@@ -19,9 +19,17 @@ const api = new Elysia({ prefix: "/api" })
 const app = new Elysia()
 	.use(
 		cors({
-			origin: [env.FRONTEND_URL, `http://localhost:${env.PORT}`],
+			origin: [
+				env.FRONTEND_URL,
+				`http://localhost:${env.PORT}`,
+				"http://localhost:80",
+				"http://localhost",
+				"http://127.0.0.1",
+				"http://127.0.0.1:80",
+			],
 			credentials: true,
-			allowedHeaders: ["Content-Type", "Authorization"],
+			allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+			methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 		}),
 	)
 	.mount(auth.handler)

@@ -8,7 +8,13 @@ import { redis } from "@/db/redis";
 import * as schema from "@/db/schema";
 
 export const auth = betterAuth({
-	trustedOrigins: [env.FRONTEND_URL],
+	trustedOrigins: [
+		env.FRONTEND_URL,
+		"http://localhost",
+		"http://localhost:80",
+		"http://127.0.0.1",
+		"http://127.0.0.1:80",
+	],
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema,

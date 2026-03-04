@@ -16,10 +16,10 @@ const envSchema = t.Object({
 });
 
 const processEnv = {
-	DATABASE_URL: Bun.env.DATABASE_URL,
-	REDIS_URL: Bun.env.REDIS_URL,
-	BETTER_AUTH_SECRET: Bun.env.BETTER_AUTH_SECRET,
-	FRONTEND_URL: Bun.env.FRONTEND_URL,
+	DATABASE_URL: process.env.DATABASE_URL,
+	REDIS_URL: process.env.REDIS_URL,
+	BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+	FRONTEND_URL: process.env.FRONTEND_URL,
 	PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : undefined,
 };
 

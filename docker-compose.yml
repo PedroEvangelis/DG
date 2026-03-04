@@ -35,8 +35,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: dg-backend
     restart: unless-stopped
     ports:
@@ -57,8 +57,8 @@ services:
 
   migrate-seed:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: dg-migrate-seed
     environment:
       DATABASE_URL: postgresql://user:password@postgres:5432/dg-db
@@ -69,8 +69,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: dg-frontend
     restart: unless-stopped
     ports:
