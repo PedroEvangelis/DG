@@ -1,277 +1,369 @@
 import { useForm } from "@tanstack/react-form";
-import * as React from "react";
-import { z } from "zod";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+	Field,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { type AddressValues, addressSchema } from "@/lib/validators/address";
+import type { Address } from "@/types";
 
-interface ViaCepResponse {
-	logradouro: string;
-	bairro: string;
-	localidade: string;
-	uf: string;
+interface AddressFormProps {
+	userId: string;
+	initialData?: Address;
+	onSuccess?: () => void;
 }
 
-const addressSchema = z.object({
-	zipCode: z
-		.string()
-		.min(1, "CEP é obrigatório")
-		.regex(/^\d{5}-?\d{3}$/, "CEP inválido"),
-	street: z
-		.string()
-		.min(1, "Rua é obrigatória")
-		.min(2, "Rua deve ter pelo menos 2 caracteres"),
-	number: z.string().min(1, "Número é obrigatório"),
-	complement: z.string(),
-	neighborhood: z.string().min(1, "Bairro é obrigatório"),
-	city: z.string().min(1, "Cidade é obrigatória"),
-	state: z
-		.string()
-		.min(1, "Estado é obrigatório")
-		.length(2, "UF deve ter 2 caracteres"),
-});
+export function AddressForm({
+	userId,
+	initialData,
+	onSuccess,
+}: AddressFormProps) {
+	const queryClient = useQueryClient();
+	const isEditing = !!initialData;
 
-export type AddressFormValues = z.infer<typeof addressSchema>;
+	const { mutate: createAddress, isPending: isCreating } = useMutation({
+		mutationFn: async (values: AddressValues) => {
+			const res = await api.addresses.user({ userId }).post({
+				cep: values.zipCode,
+				street: values.street,
+				number: values.number,
+				complement: values.complement || "",
+				neighborhood: values.neighborhood,
+				city: values.city,
+				state: values.state,
+			});
 
-export function AddressForm() {
-	const [cepError, setCepError] = React.useState<string | null>(null);
-
-	const form = useForm({
-		defaultValues: {
-			street: "",
-			number: "",
-			complement: "",
-			neighborhood: "",
-			city: "",
-			state: "",
-			zipCode: "",
+			if (res.error) throw res.error;
+			return res.data;
 		},
-		validators: {
-			onSubmit: addressSchema,
+		onSuccess: () => {
+			toast.success("Endereço adicionado com sucesso!");
+			queryClient.invalidateQueries({ queryKey: ["addresses", userId] });
+			form.reset();
+			onSuccess?.();
+		},
+		onError: (error: unknown) => {
+			let message = "Erro ao adicionar endereço";
+			if (error && typeof error === "object" && "value" in error) {
+				const val = (error as { value: any }).value;
+				if (val && typeof val === "object" && "message" in val) {
+					message = String(val.message);
+				} else if (typeof val === "string") {
+					message = val;
+				}
+			}
+			toast.error(message);
 		},
 	});
 
-	const handleCepBlur = async (cep: string) => {
-		setCepError(null);
-		const cleanCep = cep.replace(/\D/g, "");
-		if (cleanCep.length !== 8) return;
+	const { mutate: updateAddress, isPending: isUpdating } = useMutation({
+		mutationFn: async (values: AddressValues) => {
+			if (!initialData?.id) throw new Error("ID do endereço não encontrado");
+			const res = await api.addresses({ id: initialData!.id }).put({
+				cep: values.zipCode,
+				street: values.street,
+				number: values.number,
+				complement: values.complement || "",
+				neighborhood: values.neighborhood,
+				city: values.city,
+				state: values.state,
+			});
 
-		try {
-			const res = await api.integrations.cep({ cep: cleanCep }).get();
-			if (res.data && "logradouro" in res.data) {
-				const addressData = res.data as unknown as ViaCepResponse;
+			if (res.error) throw res.error;
+			return res.data;
+		},
+		onSuccess: () => {
+			toast.success("Endereço atualizado com sucesso!");
+			queryClient.invalidateQueries({ queryKey: ["addresses", userId] });
+			onSuccess?.();
+		},
+		onError: (error: unknown) => {
+			let message = "Erro ao atualizar endereço";
+			if (error && typeof error === "object" && "value" in error) {
+				const val = (error as { value: any }).value;
+				if (val && typeof val === "object" && "message" in val) {
+					message = String(val.message);
+				} else if (typeof val === "string") {
+					message = val;
+				}
+			}
+			toast.error(message);
+		},
+	});
+
+	const { mutate: deleteAddress, isPending: isDeleting } = useMutation({
+		mutationFn: async () => {
+			if (!initialData?.id) throw new Error("ID do endereço não encontrado");
+			const res = await api.addresses({ id: initialData!.id }).delete();
+			if (res.error) throw res.error;
+			return res.data;
+		},
+		onSuccess: () => {
+			toast.success("Endereço removido com sucesso!");
+			queryClient.invalidateQueries({ queryKey: ["addresses", userId] });
+			onSuccess?.();
+		},
+		onError: (error: unknown) => {
+			let message = "Erro ao remover endereço";
+			if (error && typeof error === "object" && "value" in error) {
+				const val = (error as { value: any }).value;
+				if (val && typeof val === "object" && "message" in val) {
+					message = String(val.message);
+				} else if (typeof val === "string") {
+					message = val;
+				}
+			}
+			toast.error(message);
+		},
+	});
+
+	const form = useForm({
+		defaultValues: {
+			zipCode: initialData?.cep || "",
+			street: initialData?.street || "",
+			number: initialData?.number || "",
+			complement: initialData?.complement || "",
+			neighborhood: initialData?.neighborhood || "",
+			city: initialData?.city || "",
+			state: initialData?.state || "",
+		} as AddressValues,
+		validators: {
+			onChange: addressSchema,
+		},
+		onSubmit: ({ value }) => {
+			if (isEditing) {
+				updateAddress(value);
+			} else {
+				createAddress(value);
+			}
+		},
+	});
+
+	const { mutate: handleCepLookup, isPending: isLookingUpCep } = useMutation({
+		mutationFn: async (cep: string) => {
+			const response = await api.integrations.cep({ cep }).get();
+			if (response.error) throw new Error("CEP não encontrado");
+			return response.data;
+		},
+		onSuccess: (data: any) => {
+			// biome-ignore lint/suspicious/noExplicitAny: integration response handling
+			const addressData = data?.data || data;
+			if (addressData) {
 				form.setFieldValue("street", addressData.logradouro);
 				form.setFieldValue("neighborhood", addressData.bairro);
 				form.setFieldValue("city", addressData.localidade);
 				form.setFieldValue("state", addressData.uf);
-			} else {
-				setCepError("CEP not found.");
+				toast.success("Endereço preenchido automaticamente!");
 			}
-		} catch (error) {
-			console.error("Failed to fetch address from ViaCEP", error);
-			setCepError("Failed to fetch address.");
-		}
+		},
+		onError: () => {
+			toast.error("Não foi possível localizar o CEP.");
+		},
+	});
+
+	const isSubmitting = isCreating || isUpdating || isDeleting;
+
+	const FormFieldWrapper = ({
+		field,
+		label,
+		placeholder,
+		maxLength,
+		className,
+		onChangeOverride,
+	}: {
+		// biome-ignore lint/suspicious/noExplicitAny: TanStack Form field type
+		field: any;
+		label: string;
+		placeholder?: string;
+		maxLength?: number;
+		className?: string;
+		onChangeOverride?: (val: string) => void;
+	}) => {
+		const isInvalid =
+			field.state.meta.isTouched && field.state.meta.errors.length > 0;
+		return (
+			<Field data-invalid={isInvalid} className={className}>
+				<FieldLabel htmlFor={field.name}>
+					{label}{" "}
+					{field.name === "zipCode" && isLookingUpCep && (
+						<Loader2 className="inline ml-2 h-3 w-3 animate-spin" />
+					)}
+				</FieldLabel>
+				<Input
+					id={field.name}
+					placeholder={placeholder}
+					maxLength={maxLength}
+					value={field.state.value}
+					onBlur={field.handleBlur}
+					onChange={(e) => {
+						const val = e.target.value;
+						if (onChangeOverride) {
+							onChangeOverride(val);
+						} else {
+							field.handleChange(val);
+						}
+					}}
+				/>
+				<FieldError errors={field.state.meta.errors} />
+			</Field>
+		);
 	};
 
 	return (
-		<div className="space-y-4 border-t pt-4 mt-4">
-			<h3 className="text-lg font-medium">Address</h3>
-			<form.Field
-				name="zipCode"
-				validators={{
-					onChange: ({ value }) =>
-						!value
-							? { message: "CEP é obrigatório" }
-							: !/^\d{5}-?\d{3}$/.test(value)
-								? { message: "CEP inválido" }
-								: undefined,
-				}}
-			>
-				{(field) => {
-					const isInvalid =
-						field.state.meta.isTouched && !field.state.meta.isValid;
-					return (
-						<Field data-invalid={isInvalid || !!cepError}>
-							<FieldLabel htmlFor={field.name}>CEP / Zip Code</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={(e) => {
-									field.handleBlur();
-									handleCepBlur(e.target.value);
-								}}
-								onChange={(e) => {
-									field.handleChange(e.target.value);
-									if (cepError) setCepError(null);
-								}}
-								aria-invalid={isInvalid || !!cepError}
-							/>
-							{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							{cepError && <p className="text-sm text-red-500">{cepError}</p>}
-						</Field>
-					);
-				}}
-			</form.Field>
-			<form.Field
-				name="street"
-				validators={{
-					onChange: ({ value }) =>
-						!value
-							? { message: "Rua é obrigatória" }
-							: value.length < 2
-								? { message: "Rua deve ter pelo menos 2 caracteres" }
-								: undefined,
-				}}
-			>
-				{(field) => {
-					const isInvalid =
-						field.state.meta.isTouched && !field.state.meta.isValid;
-					return (
-						<Field data-invalid={isInvalid}>
-							<FieldLabel htmlFor={field.name}>Street</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								aria-invalid={isInvalid}
-							/>
-							{isInvalid && <FieldError errors={field.state.meta.errors} />}
-						</Field>
-					);
-				}}
-			</form.Field>
-			<form.Field
-				name="number"
-				validators={{
-					onChange: ({ value }) =>
-						!value ? { message: "Número é obrigatório" } : undefined,
-				}}
-			>
-				{(field) => {
-					const isInvalid =
-						field.state.meta.isTouched && !field.state.meta.isValid;
-					return (
-						<Field data-invalid={isInvalid}>
-							<FieldLabel htmlFor={field.name}>Number</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								aria-invalid={isInvalid}
-							/>
-							{isInvalid && <FieldError errors={field.state.meta.errors} />}
-						</Field>
-					);
-				}}
-			</form.Field>
-			<form.Field name="complement">
-				{(field) => {
-					const isInvalid =
-						field.state.meta.isTouched && !field.state.meta.isValid;
-					return (
-						<Field data-invalid={isInvalid}>
-							<FieldLabel htmlFor={field.name}>Complement</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								aria-invalid={isInvalid}
-							/>
-							{isInvalid && <FieldError errors={field.state.meta.errors} />}
-						</Field>
-					);
-				}}
-			</form.Field>
-			<form.Field
-				name="neighborhood"
-				validators={{
-					onChange: ({ value }) =>
-						!value ? { message: "Bairro é obrigatório" } : undefined,
-				}}
-			>
-				{(field) => {
-					const isInvalid =
-						field.state.meta.isTouched && !field.state.meta.isValid;
-					return (
-						<Field data-invalid={isInvalid}>
-							<FieldLabel htmlFor={field.name}>Neighborhood</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								aria-invalid={isInvalid}
-							/>
-							{isInvalid && <FieldError errors={field.state.meta.errors} />}
-						</Field>
-					);
-				}}
-			</form.Field>
-			<form.Field
-				name="city"
-				validators={{
-					onChange: ({ value }) =>
-						!value ? { message: "Cidade é obrigatória" } : undefined,
-				}}
-			>
-				{(field) => {
-					const isInvalid =
-						field.state.meta.isTouched && !field.state.meta.isValid;
-					return (
-						<Field data-invalid={isInvalid}>
-							<FieldLabel htmlFor={field.name}>City</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								aria-invalid={isInvalid}
-							/>
-							{isInvalid && <FieldError errors={field.state.meta.errors} />}
-						</Field>
-					);
-				}}
-			</form.Field>
-			<form.Field
-				name="state"
-				validators={{
-					onChange: ({ value }) =>
-						!value
-							? { message: "Estado é obrigatório" }
-							: value.length !== 2
-								? { message: "UF deve ter 2 caracteres" }
-								: undefined,
-				}}
-			>
-				{(field) => {
-					const isInvalid =
-						field.state.meta.isTouched && !field.state.meta.isValid;
-					return (
-						<Field data-invalid={isInvalid}>
-							<FieldLabel htmlFor={field.name}>State (UF)</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								aria-invalid={isInvalid}
-								maxLength={2}
-							/>
-							{isInvalid && <FieldError errors={field.state.meta.errors} />}
-						</Field>
-					);
-				}}
-			</form.Field>
-		</div>
+		<form
+			id="address-form"
+			onSubmit={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				form.handleSubmit();
+			}}
+			className="space-y-4"
+		>
+			<FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<form.Field
+					name="zipCode"
+					children={(field) => (
+						<FormFieldWrapper
+							field={field}
+							label="CEP"
+							placeholder="00000000"
+							maxLength={8}
+							onChangeOverride={(val) => {
+								const cleanVal = val.replace(/\D/g, "");
+								field.handleChange(cleanVal);
+								if (cleanVal.length === 8) {
+									handleCepLookup(cleanVal);
+								}
+							}}
+						/>
+					)}
+				/>
+				<form.Field
+					name="street"
+					children={(field) => (
+						<FormFieldWrapper
+							field={field}
+							label="Rua"
+							className="md:col-span-2"
+						/>
+					)}
+				/>
+				<form.Field
+					name="number"
+					children={(field) => (
+						<FormFieldWrapper field={field} label="Número" />
+					)}
+				/>
+				<form.Field
+					name="complement"
+					children={(field) => (
+						<FormFieldWrapper field={field} label="Complemento" />
+					)}
+				/>
+				<form.Field
+					name="neighborhood"
+					children={(field) => (
+						<FormFieldWrapper field={field} label="Bairro" />
+					)}
+				/>
+				<form.Field
+					name="city"
+					children={(field) => (
+						<FormFieldWrapper
+							field={field}
+							label="Cidade"
+							className="md:col-span-2"
+						/>
+					)}
+				/>
+				<form.Field
+					name="state"
+					children={(field) => (
+						<FormFieldWrapper
+							field={field}
+							label="UF"
+							maxLength={2}
+							onChangeOverride={(val) => field.handleChange(val.toUpperCase())}
+						/>
+					)}
+				/>
+			</FieldGroup>
+			<div className="flex justify-between items-center pt-4">
+				{isEditing ? (
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button
+								type="button"
+								variant="destructive"
+								disabled={isSubmitting}
+							>
+								{isDeleting ? (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								) : (
+									<Trash2 className="mr-2 h-4 w-4" />
+								)}
+								Excluir
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+								<AlertDialogDescription>
+									Esta ação não pode ser desfeita. Isso excluirá permanentemente
+									o endereço.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Cancelar</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={() => deleteAddress()}
+									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								>
+									Excluir
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				) : (
+					<div />
+				)}
+				<div className="flex gap-2">
+					{onSuccess && (
+						<Button
+							type="button"
+							variant="outline"
+							onClick={onSuccess}
+							disabled={isSubmitting}
+						>
+							Cancelar
+						</Button>
+					)}
+					<Button type="submit" disabled={isSubmitting}>
+						{isSubmitting && !isDeleting && (
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						)}
+						{isEditing ? "Salvar Alterações" : "Salvar Endereço"}
+					</Button>
+				</div>
+			</div>
+		</form>
 	);
 }

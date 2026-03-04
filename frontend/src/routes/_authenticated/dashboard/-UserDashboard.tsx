@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
-import { AddressCreateDialog } from "@/components/forms/address-create-dialog";
+import { AddressDialog } from "@/components/forms/address-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
@@ -80,7 +80,7 @@ export function UserDashboard() {
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle>Endereços</CardTitle>
-						<AddressCreateDialog userId={userId} />
+						<AddressDialog userId={userId} />
 					</CardHeader>
 					<CardContent>
 						{addresses.length === 0 ? (
@@ -89,27 +89,36 @@ export function UserDashboard() {
 								<p>Nenhum endereço cadastrado.</p>
 							</div>
 						) : (
-							<div className="space-y-4">
+							<div className="grid grid-cols-1 gap-4">
 								{addresses.map((address: Address) => (
-									<div
+									<AddressDialog
 										key={address.id}
-										className="p-3 border rounded-lg shadow-sm"
+										userId={userId}
+										address={address}
 									>
-										<p className="font-medium">
-											{address.street}, {address.number}
-										</p>
-										{address.complement && (
-											<p className="text-sm text-muted-foreground">
-												{address.complement}
-											</p>
-										)}
-										<p className="text-sm">
-											{address.neighborhood}, {address.city} - {address.state}
-										</p>
-										<p className="text-sm font-mono text-muted-foreground">
-											CEP: {address.cep}
-										</p>
-									</div>
+										<div className="p-3 border rounded-lg shadow-sm cursor-pointer hover:bg-muted/50 transition-colors">
+											<div className="flex justify-between items-start">
+												<div>
+													<p className="font-medium">
+														{address.street}, {address.number}
+													</p>
+													{address.complement && (
+														<p className="text-sm text-muted-foreground">
+															{address.complement}
+														</p>
+													)}
+													<p className="text-sm">
+														{address.neighborhood}, {address.city} -{" "}
+														{address.state}
+													</p>
+													<p className="text-sm font-mono text-muted-foreground">
+														CEP: {address.cep}
+													</p>
+												</div>
+												<MapPin className="h-4 w-4 text-muted-foreground" />
+											</div>
+										</div>
+									</AddressDialog>
 								))}
 							</div>
 						)}

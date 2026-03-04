@@ -32,18 +32,6 @@ import { USER_GENDERS, type UserGender } from "@/constants/userGender";
 import { USER_TYPES, type UserType } from "@/constants/userType";
 import { api } from "@/lib/api";
 
-api.addresses.user({ userId: "string" })
-
-const addressSchema = z.object({
-	zipCode: z.string().min(8, "CEP inválido"),
-	street: z.string().min(1, "Obrigatório"),
-	number: z.string().min(1, "Obrigatório"),
-	complement: z.string().optional(),
-	neighborhood: z.string().min(1, "Obrigatório"),
-	city: z.string().min(1, "Obrigatório"),
-	state: z.string().length(2, "UF inválida"),
-});
-
 const userFormSchema = z.discriminatedUnion("type", [
 	z.object({
 		type: z.literal(USER_TYPES.PF),
@@ -57,7 +45,6 @@ const userFormSchema = z.discriminatedUnion("type", [
 			USER_GENDERS.OTHER,
 			USER_GENDERS.NOT_DECLARED,
 		]),
-		...addressSchema.shape,
 	}),
 	z.object({
 		type: z.literal(USER_TYPES.PJ),
@@ -66,7 +53,6 @@ const userFormSchema = z.discriminatedUnion("type", [
 		cnpj: z.string().min(14, "CNPJ inválido"),
 		corporateName: z.string().min(1, "Razão Social é obrigatória"),
 		tradeName: z.string().min(1, "Nome Fantasia é obrigatório"),
-		...addressSchema.shape,
 	}),
 ]);
 
@@ -111,45 +97,37 @@ export function UserCreateForm() {
 	const [copied, setCopied] = useState(false);
 	const queryClient = useQueryClient();
 
-	const { mutateAsync: createAddress } = useMutation({
-		mutationFn: async ({ userId, data }: { userId: string; data: any }) => {
-			await api.addresses.user({ userId }).post({
-				cep: data.zipCode,
-				street: data.street,
-				number: data.number,
-				complement: data.complement,
-				neighborhood: data.neighborhood,
-				city: data.city,
-				state: data.state,
-			});
-		},
-	});
-
 	const { mutate, isPending } = useMutation({
 		mutationFn: async (values: UserFormValues) => {
-			const {
-				zipCode,
-				street,
-				number,
-				complement,
-				neighborhood,
-				city,
-				state,
-				...userData
-			} = values;
-			const response = await api.users.post(userData);
+			// Filtra apenas os campos relevantes para o tipo selecionado para evitar erro de validação no backend
+			// (Campos irrelevantes com string vazia "" causam falha no t.Union do TypeBox)
+			const userData =
+				values.type === USER_TYPES.PF
+					? {
+							type: values.type,
+							name: values.name,
+							email: values.email,
+							cpf: values.cpf.replace(/\D/g, ""),
+							dob: values.dob,
+							gender: values.gender,
+						}
+					: {
+							type: values.type,
+							name: values.name,
+							email: values.email,
+							cnpj: values.cnpj.replace(/\D/g, ""),
+							corporateName: values.corporateName,
+							tradeName: values.tradeName,
+						};
+
+			const response = await api.users.post(userData as any);
 
 			if (response.error) throw response.error;
 
-			const data = response.data.data as any;
-
-			if (data?.id) {
-				await createAddress({ userId: data.id, data: values });
-			}
-			return data;
+			return response.data.data as any;
 		},
 		onSuccess: (data) => {
-			toast.success("Usuário e endereço criados com sucesso!");
+			toast.success("Usuário criado com sucesso!");
 			queryClient.invalidateQueries({ queryKey: ["users"] });
 			setGeneratedPassword(data.temporaryPassword || null);
 			if (!data.temporaryPassword) {
@@ -158,10 +136,10 @@ export function UserCreateForm() {
 			}
 		},
 		onError: (error: { value: { message: string } | string }) => {
-			const message = typeof error?.value == "string" 
-				? error?.value 
-				: error?.value?.message 
-				|| "Erro ao criar usuário";
+			const message =
+				typeof error?.value == "string"
+					? error?.value
+					: error?.value?.message || "Erro ao criar usuário";
 			toast.error(message);
 		},
 	});
@@ -177,35 +155,27 @@ export function UserCreateForm() {
 			cnpj: "",
 			corporateName: "",
 			tradeName: "",
-			zipCode: "",
-			street: "",
-			number: "",
-			complement: "",
-			neighborhood: "",
-			city: "",
-			state: "",
 		} as UserFormValues,
 		validators: { onChange: userFormSchema },
 		onSubmit: ({ value }) => mutate(value),
 	});
 
-	const { mutate: handleCepLookup, isPending: isLookingUpCep } = useMutation({
-		mutationFn: async (cep: string) => {
-			const response = await api.integrations.cep({ cep }).get();
-			if (response.error) throw new Error("CEP não encontrado");
+	const { mutate: handleCnpjLookup, isPending: isLookingUpCnpj } = useMutation({
+		mutationFn: async (cnpj: string) => {
+			const response = await api.integrations.cnpj({ cnpj }).get();
+			if (response.error) throw new Error("CNPJ não encontrado");
 			return response.data;
 		},
 		onSuccess: ({ data }) => {
 			if (data) {
-				form.setFieldValue("street", data.logradouro);
-				form.setFieldValue("neighborhood", data.bairro);
-				form.setFieldValue("city", data.localidade);
-				form.setFieldValue("state", data.uf);
-				toast.success("Endereço preenchido automaticamente!");
+				form.setFieldValue("corporateName", data.nome);
+				form.setFieldValue("name", data.nome);
+				form.setFieldValue("tradeName", data.fantasia || data.nome);
+				toast.success("Dados da empresa preenchidos automaticamente!");
 			}
 		},
 		onError: () => {
-			toast.error("Não foi possível localizar o CEP.");
+			toast.error("Não foi possível localizar o CNPJ.");
 		},
 	});
 
@@ -237,7 +207,7 @@ export function UserCreateForm() {
 					Novo usuário <Plus className="ml-2 h-4 w-4" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-w-2xl">
 				{generatedPassword ? (
 					<div className="space-y-6">
 						<DialogHeader>
@@ -332,7 +302,30 @@ export function UserCreateForm() {
 													<form.Field
 														name="cpf"
 														children={(field) => (
-															<FormFieldWrapper field={field} label="CPF" />
+															<Field
+																data-invalid={
+																	field.state.meta.isTouched &&
+																	field.state.meta.errors.length > 0
+																}
+															>
+																<FieldLabel htmlFor={field.name}>
+																	CPF
+																</FieldLabel>
+																<Input
+																	id={field.name}
+																	placeholder="000.000.000-00"
+																	value={field.state.value}
+																	onBlur={field.handleBlur}
+																	onChange={(e) => {
+																		const value = e.target.value.replace(
+																			/\D/g,
+																			"",
+																		);
+																		field.handleChange(value);
+																	}}
+																/>
+																<FieldError errors={field.state.meta.errors} />
+															</Field>
 														)}
 													/>
 													<form.Field
@@ -385,7 +378,37 @@ export function UserCreateForm() {
 													<form.Field
 														name="cnpj"
 														children={(field) => (
-															<FormFieldWrapper field={field} label="CNPJ" />
+															<Field
+																data-invalid={
+																	field.state.meta.isTouched &&
+																	field.state.meta.errors.length > 0
+																}
+															>
+																<FieldLabel htmlFor={field.name}>
+																	CNPJ{" "}
+																	{isLookingUpCnpj && (
+																		<Loader2 className="inline ml-2 h-3 w-3 animate-spin" />
+																	)}
+																</FieldLabel>
+																<Input
+																	id={field.name}
+																	placeholder="00.000.000/0000-00"
+																	value={field.state.value}
+																	onBlur={field.handleBlur}
+																	onChange={(e) => {
+																		const value = e.target.value.replace(
+																			/\D/g,
+																			"",
+																		);
+																		field.handleChange(value);
+
+																		if (value.length === 14) {
+																			handleCnpjLookup(value);
+																		}
+																	}}
+																/>
+																<FieldError errors={field.state.meta.errors} />
+															</Field>
 														)}
 													/>
 													<form.Field
@@ -410,77 +433,6 @@ export function UserCreateForm() {
 											)
 										}
 									</form.Subscribe>
-								</div>
-
-								<div className="border-t pt-4">
-									<h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
-										Endereço
-									</h3>
-									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-										<form.Field
-											name="zipCode"
-											children={(field) => (
-												<Field
-													data-invalid={
-														field.state.meta.isTouched &&
-														field.state.meta.errors.length > 0
-													}
-												>
-													<FieldLabel htmlFor={field.name}>
-														CEP{" "}
-														{isLookingUpCep && (
-															<Loader2 className="inline ml-2 h-3 w-3 animate-spin" />
-														)}
-													</FieldLabel>
-													<Input
-														id={field.name}
-														placeholder="00000-000"
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => {
-															const value = e.target.value.replace(/\D/g, "");
-															field.handleChange(value);
-
-															if (value.length === 8) {
-																handleCepLookup(value);
-															}
-														}}
-													/>
-													<FieldError errors={field.state.meta.errors} />
-												</Field>
-											)}
-										/>
-										<form.Field
-											name="street"
-											children={(field) => (
-												<FormFieldWrapper field={field} label="Rua" />
-											)}
-										/>
-										<form.Field
-											name="number"
-											children={(field) => (
-												<FormFieldWrapper field={field} label="Número" />
-											)}
-										/>
-										<form.Field
-											name="neighborhood"
-											children={(field) => (
-												<FormFieldWrapper field={field} label="Bairro" />
-											)}
-										/>
-										<form.Field
-											name="city"
-											children={(field) => (
-												<FormFieldWrapper field={field} label="Cidade" />
-											)}
-										/>
-										<form.Field
-											name="state"
-											children={(field) => (
-												<FormFieldWrapper field={field} label="UF" />
-											)}
-										/>
-									</div>
 								</div>
 							</FieldGroup>
 
